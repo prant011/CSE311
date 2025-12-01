@@ -1,0 +1,49 @@
+{% extends "library/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Select Issue - Create Fine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2><i class="bi bi-plus-circle"></i> Create Fine - Select Issue</h2>
+            <hr>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if issues %}
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="issue" class="form-label"><strong>Select Issue:</strong></label>
+                        <select name="issue_id" id="issue" class="form-select" required>
+                            <option value="">-- Select an Issue --</option>
+                            {% for issue in issues %}
+                                <option value="{{ issue.id }}">
+                                    {{ issue.student.user.first_name }} {{ issue.student.user.last_name }} - 
+                                    {{ issue.book.title }} (Issued: {{ issue.issue_date|date:"Y-m-d" }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right"></i> Next</button>
+                        <a href="{% url 'admin_fines' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-info"><i class="bi bi-info-circle"></i> No pending issues found.</div>
+                <a href="{% url 'admin_fines' %}" class="btn btn-secondary">Back</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

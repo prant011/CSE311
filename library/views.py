@@ -1412,3 +1412,82 @@ def admin_fine_select_issue(request):
         'issues': issues,
     }
     return render(request, 'library/admin_fine_select_issue.html', context)
+
+def admin_fine_select_issue(request):
+    """Select issue to create fine automatically"""
+    # Get all issued books that are overdue or not yet returned
+    issues = IssueRequest.objects.filter(
+        status='issued',
+        return_date__isnull=True
+    ).select_related('student', 'book')
+    
+    if request.method == 'POST':
+        issue_id = request.POST.get('issue_id')
+        try:
+            issue = IssueRequest.objects.get(id=issue_id)
+            
+            # Calculate fine
+            today = timezone.now().date()
+            due_date = issue.issue_date + timedelta(days=14)  # DEFAULT_ISSUE_DAYS
+            
+            if today > due_date:
+                days_overdue = (today - due_date).days
+                fine_amount = days_overdue * 5.00  # FINE_PER_DAY
+            else:
+                fine_amount = 0.00
+            
+            # Create or update fine
+            fine, created = Fine.objects.get_or_create(
+                issue=issue,
+                defaults={
+                    'student': issue.student,
+                    'amount': fine_amount,
+                    'reason': f'Book overdue: {issue.book.title}',
+                    'status': 'unpaid'
+                }
+            )
+            
+            if not created:
+                fine.amount = fine_amount
+                fine.save()
+            
+            messages.success(request, f'Fine created successfully: ৳{fine_amount}')
+            return redirect('admin_fines')
+        except IssueRequest.DoesNotExist:
+            messages.error(request, 'Issue not found')
+    
+    return render(request, 'library/admin_fine_select_issue.html', {
+        'issues': issues
+    })
+
+def admin_fine_create_custom(request):
+    """Create fine manually for a student"""
+    students = Student.objects.all().select_related('user')
+    
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        amount = request.POST.get('amount')
+        reason = request.POST.get('reason')
+        
+        try:
+            student = Student.objects.get(id=student_id)
+            
+            # Create custom fine without issue
+            fine = Fine.objects.create(
+                student=student,
+                issue=None,
+                amount=float(amount),
+                reason=reason,
+                status='unpaid'
+            )
+            
+            messages.success(request, f'Custom fine created for {student.user.get_full_name()}')
+            return redirect('admin_fines')
+        except Student.DoesNotExist:
+            messages.error(request, 'Student not found')
+        except ValueError:
+            messages.error(request, 'Invalid amount')
+    
+    return render(request, 'library/admin_fine_create_custom.html', {
+        'students': students
+    })

@@ -1,0 +1,94 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - Library System{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item active">{{ book.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}">
+                {% else %}
+                    <img src="{% static 'images/default-book.png' %}" class="card-img-top" alt="Book Cover">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h1>{{ book.title }}</h1>
+            <h4 class="text-muted">by {{ book.author.name }}</h4>
+
+            <hr>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+                    <p><strong>Publisher:</strong> {{ book.publisher|default:"N/A" }}</p>
+                    <p><strong>Publication Year:</strong> {{ book.publication_year|default:"N/A" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Category:</strong> <span class="badge bg-info">{{ book.category|default:"General" }}</span></p>
+                    <p><strong>Total Copies:</strong> {{ book.total_copies }}</p>
+                    <p><strong>Available:</strong> 
+                        {% if book.available_copies > 0 %}
+                            <span class="badge bg-success">{{ book.available_copies }} copies</span>
+                        {% else %}
+                            <span class="badge bg-danger">Not Available</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            {% if book.description %}
+            <div class="mb-3">
+                <h5>Description</h5>
+                <p>{{ book.description }}</p>
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <div class="mb-3">
+                {% if student %}
+                    {% if book_status == 'issued' %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> You have already borrowed this book.
+                        </div>
+                        <a href="{% url 'student_issues' %}" class="btn btn-primary">View My Issues</a>
+                    {% elif book_status == 'issue requested' %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-clock"></i> Your request for this book is pending approval.
+                        </div>
+                        <a href="{% url 'student_issues' %}" class="btn btn-primary">View My Issues</a>
+                    {% elif book_status == 'request issue' %}
+                        <a href="{% url 'request_book' book.id %}" class="btn btn-success btn-lg">
+                            <i class="bi bi-arrow-right-circle"></i> Request This Book
+                        </a>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-x-circle"></i> This book is currently not available.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Please <a href="{% url 'login_choice' %}">login</a> to request this book.
+                    </div>
+                {% endif %}
+            </div>
+
+            <a href="{% url 'home' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Books
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}My Issues{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-list-check"></i> My Issues</h2>
+            <p class="text-muted">View and manage all your book borrowing requests and issues</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                <i class="bi bi-book"></i> Browse Books
+            </a>
+        </div>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filter -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-10">
+                    <select name="filter" class="form-select">
+                        <option value="all" {% if filter_by == 'all' or not filter_by %}selected{% endif %}>All Issues</option>
+                        <option value="requested" {% if filter_by == 'requested' %}selected{% endif %}>Requested</option>
+                        <option value="issued" {% if filter_by == 'issued' %}selected{% endif %}>Issued</option>
+                        <option value="overdue" {% if filter_by == 'overdue' %}selected{% endif %}>Overdue</option>
+                        <option value="returned" {% if filter_by == 'returned' %}selected{% endif %}>Returned</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Issues Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Book</th>
+                            <th>Request Date</th>
+                            <th>Issue Date</th>
+                            <th>Due Date</th>
+                            <th>Return Date</th>
+                            <th>Days Remaining</th>
+                            <th>Fine</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in issues %}
+                        <tr>
+                            <td><strong>{{ issue.book.title }}</strong></td>
+                            <td>{{ issue.request_date|date:"d M Y" }}</td>
+                            <td>{{ issue.issue_date|date:"d M Y"|default:"N/A" }}</td>
+                            <td>{% if issue.expected_return_date %}{{ issue.expected_return_date|date:"d M Y" }}{% else %}N/A{% endif %}</td>
+                            <td>{{ issue.actual_return_date|date:"d M Y"|default:"N/A" }}</td>
+                            <td>
+                                {% if issue.status == 'issued' or issue.status == 'overdue' %}
+                                    {% if issue.days_remaining is not None and issue.days_remaining < 0 %}
+                                        <span class="badge bg-danger">{{ issue.days_overdue }} days overdue</span>
+                                    {% elif issue.days_remaining is not None %}
+                                        <span class="badge bg-success">{{ issue.days_remaining }} days left</span>
+                                    {% else %}
+                                        <span class="text-muted">Calculating...</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if issue.real_time_fine > 0 %}
+                                    <span class="badge bg-warning">{{ issue.real_time_fine }} tk</span>
+                                    <small class="text-muted d-block">(5 tk/day)</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if issue.status == 'requested' %}
+                                    <span class="badge bg-info">Requested</span>
+                                {% elif issue.status == 'issued' %}
+                                    <span class="badge bg-warning">Issued</span>
+                                {% elif issue.status == 'overdue' %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% elif issue.status == 'returned' %}
+                                    <span class="badge bg-success">Returned</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ issue.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                                <p class="mt-3">No issues found</p>
+                                <a href="{% url 'home' %}" class="btn btn-primary">Browse Books</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

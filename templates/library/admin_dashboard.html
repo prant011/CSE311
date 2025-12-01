@@ -1,0 +1,211 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+    <p class="text-muted">Welcome, {{ user.username }}!</p>
+
+    <!-- Statistics Cards -->
+    <div class="row mt-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-book-fill" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2">{{ total_books }}</h3>
+                    <p class="mb-0">Total Books</p>
+                    <a href="{% url 'admin_books' %}" class="btn btn-light btn-sm mt-2">Manage</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2">{{ total_students }}</h3>
+                    <p class="mb-0">Total Students</p>
+                    <a href="{% url 'admin_students' %}" class="btn btn-light btn-sm mt-2">Manage</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2">{{ pending_requests }}</h3>
+                    <p class="mb-0">Pending Requests</p>
+                    <a href="{% url 'admin_issues' %}?status=requested" class="btn btn-light btn-sm mt-2">View</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-danger text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2">{{ overdue_issues }}</h3>
+                    <p class="mb-0">Overdue Books</p>
+                    <a href="{% url 'admin_issues' %}?status=overdue" class="btn btn-light btn-sm mt-2">View</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-bookmark-check text-info" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2">{{ active_issues }}</h4>
+                    <p class="text-muted">Active Issues</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-currency-dollar text-warning" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2">৳{{ unpaid_fines }}</h4>
+                    <p class="text-muted">Unpaid Fines</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2">Today</h4>
+                    <p class="text-muted">{{ recent_requests.count }} New Requests</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Requests -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Requests</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Book</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in recent_requests %}
+                                <tr>
+                                    <td>{{ request.student.student_id }}</td>
+                                    <td>{{ request.book.title|truncatewords:3 }}</td>
+                                    <td>{{ request.request_date|date:"d M" }}</td>
+                                    <td>
+                                        <a href="{% url 'accept_issue_request' request.id %}" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No recent requests</p>
+                    {% endif %}
+                    <a href="{% url 'admin_issues' %}" class="btn btn-primary btn-sm w-100">View All Issues</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-book"></i> Recent Issues</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_issues %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Book</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for issue in recent_issues %}
+                                <tr>
+                                    <td>{{ issue.student.student_id }}</td>
+                                    <td>{{ issue.book.title|truncatewords:3 }}</td>
+                                    <td>{{ issue.expected_return_date|date:"d M" }}</td>
+                                    <td>
+                                        {% if issue.is_overdue %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No active issues</p>
+                    {% endif %}
+                    <a href="{% url 'admin_issues' %}" class="btn btn-success btn-sm w-100">View All Issues</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'admin_book_add' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-plus-circle"></i> Add Book
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'admin_student_add' %}" class="btn btn-outline-success w-100">
+                                <i class="bi bi-person-plus"></i> Add Student
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'admin_author_add' %}" class="btn btn-outline-info w-100">
+                                <i class="bi bi-pen"></i> Add Author
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'admin_issues' %}" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-list-check"></i> Manage Issues
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

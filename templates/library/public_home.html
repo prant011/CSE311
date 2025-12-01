@@ -1,0 +1,545 @@
+{% extends "library/base.html" %}
+{% load static %}
+
+{% block title %}Home - Library Management System{% endblock %}
+
+{% block content %}
+<div class="public-home">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container-fluid">
+            <div class="row align-items-center py-5">
+                <div class="col-lg-6 px-5">
+                    {# removed broken logo image #}
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="bi bi-book"></i> Welcome to University Library Website
+                    </h1>
+                    <p class="lead mb-4">
+                        Discover a world of knowledge with our comprehensive library management system. 
+                        Easily search for books, manage your borrowing records, and stay connected with the library.
+                    </p>
+                    
+                    <!-- Dashboard/Login Buttons - Moved above search -->
+                    <div class="d-flex gap-3 flex-wrap mb-4">
+                        {% if request.session.is_admin or request.session.is_student %}
+                            {% if request.session.is_admin %}
+                                <a href="{% url 'admin_dashboard' %}" class="btn btn-lg dashboard-btn">
+                                    <i class="bi bi-speedometer"></i> Admin Dashboard
+                                </a>
+                            {% elif request.session.is_student %}
+                                <a href="{% url 'student_dashboard' %}" class="btn btn-lg dashboard-btn">
+                                    <i class="bi bi-person"></i> My Dashboard
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login_choice' %}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                            <a href="{% url 'student_signup' %}" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-person-plus"></i> Sign Up
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Search Form -->
+                    <div class="mb-4">
+                        <form method="GET" action="{% url 'home' %}" class="d-flex gap-2">
+                            <input type="text" name="q" class="form-control form-control-lg" placeholder="Search books by title, author, ISBN..." value="{{ query|default:'' }}" autocomplete="off">
+                            <button type="submit" class="btn btn-light btn-lg">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </form>
+                        {% if query %}
+                        <div class="mt-2">
+                            <a href="{% url 'home' %}" class="text-white text-decoration-none">
+                                <i class="bi bi-x-circle"></i> Clear search
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <!-- Library image removed - using background image instead -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section py-5" style="background-color: #ffffff;">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">
+                    <i class="bi bi-lightning"></i> Our Features
+                </h2>
+                <p class="lead text-muted">Powerful tools designed for efficient library management</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Feature 1 -->
+                <div class="col-md-6 col-lg-3">
+                    <a href="{% url 'home' %}" class="text-decoration-none">
+                        <div class="card shadow-sm h-100 border-0" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-search text-primary" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Easy Search</h5>
+                                <p class="card-text text-muted">
+                                    Search and filter books by title, author, or category instantly.
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="col-md-6 col-lg-3">
+                    {% if request.session.is_student %}
+                    <a href="{% url 'student_issues' %}" class="text-decoration-none">
+                    {% else %}
+                    <a href="{% url 'login_choice' %}" class="text-decoration-none">
+                    {% endif %}
+                        <div class="card shadow-sm h-100 border-0" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-bookmark text-success" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Book Borrowing</h5>
+                                <p class="card-text text-muted">
+                                    Easily borrow and return books with automated tracking.
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="col-md-6 col-lg-3">
+                    {% if request.session.is_student %}
+                    <a href="{% url 'student_dashboard' %}" class="text-decoration-none">
+                    {% else %}
+                    <a href="{% url 'login_choice' %}" class="text-decoration-none">
+                    {% endif %}
+                        <div class="card shadow-sm h-100 border-0" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-person-check text-info" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Member Profile</h5>
+                                <p class="card-text text-muted">
+                                    Manage your profile and track your borrowing history.
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="col-md-6 col-lg-3">
+                    {% if request.session.is_student %}
+                    <a href="{% url 'student_fines' %}" class="text-decoration-none">
+                    {% else %}
+                    <a href="{% url 'login_choice' %}" class="text-decoration-none">
+                    {% endif %}
+                        <div class="card shadow-sm h-100 border-0" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-receipt text-warning" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Fine Management</h5>
+                                <p class="card-text text-muted">
+                                    Track and manage library fines with ease.
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="col-md-6 col-lg-3">
+                    {% if request.session.is_student %}
+                    <a href="{% url 'student_issues' %}" class="text-decoration-none">
+                    {% else %}
+                    <a href="{% url 'login_choice' %}" class="text-decoration-none">
+                    {% endif %}
+                        <div class="card shadow-sm h-100 border-0" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-chat-left-text text-danger" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Issue Reporting</h5>
+                                <p class="card-text text-muted">
+                                    Report issues with books and get quick resolutions.
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="col-md-6 col-lg-3">
+                    {% if request.session.is_admin %}
+                    <a href="{% url 'admin_dashboard' %}" class="text-decoration-none">
+                    {% else %}
+                    <a href="{% url 'login_choice' %}" class="text-decoration-none">
+                    {% endif %}
+                        <div class="card shadow-sm h-100 border-0" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-speedometer text-secondary" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Admin Dashboard</h5>
+                                <p class="card-text text-muted">
+                                    Comprehensive admin tools for library management.
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Books Display Section -->
+    <section class="books-section py-5" style="background-color: #ffffff;">
+        <div class="container py-5">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h2 class="display-5 fw-bold">
+                        <i class="bi bi-book"></i> {% if query %}Search Results{% else %}Featured Books{% endif %}
+                    </h2>
+                </div>
+                <div class="col-md-6 text-end">
+                    <form method="GET" class="d-inline-flex gap-2">
+                        <input type="hidden" name="q" value="{{ query|default:'' }}">
+                        <select name="category" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="sort" class="form-select" onchange="this.form.submit()">
+                            <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Sort by Title</option>
+                            <option value="author" {% if sort_by == 'author' %}selected{% endif %}>Sort by Author</option>
+                            <option value="-title" {% if sort_by == '-title' %}selected{% endif %}>Title (Z-A)</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% if books %}
+            <div class="row g-4">
+                {% for book in books %}
+                <div class="col-md-4 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="bi bi-book" style="font-size: 4rem; color: #ccc;"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ book.title }}</h5>
+                            <p class="card-text text-muted small">
+                                <i class="bi bi-person"></i> {{ book.author.name }}<br>
+                                {% if book.category %}<i class="bi bi-tag"></i> {{ book.category }}{% endif %}
+                            </p>
+                            <p class="card-text small text-muted">
+                                {% if book.available_copies > 0 %}
+                                    <span class="badge bg-success">{{ book.available_copies }} available</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Not available</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a href="{% url 'book_detail' book.pk %}" class="btn btn-sm btn-primary w-100">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if not query and books|length >= 12 %}
+            <div class="text-center mt-4">
+                <a href="{% url 'home' %}?q=" class="btn btn-outline-primary">View All Books</a>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3 text-muted">No books found</h4>
+                {% if query %}
+                <p class="text-muted">Try a different search term or <a href="{% url 'home' %}">browse all books</a></p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section py-5 bg-primary text-white">
+        <div class="container py-5">
+            <div class="row text-center g-4">
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ total_books }}</h3>
+                    <p class="lead"><i class="bi bi-book"></i> Total Books</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ total_members }}</h3>
+                    <p class="lead"><i class="bi bi-people"></i> Members</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ active_borrows }}</h3>
+                    <p class="lead"><i class="bi bi-bookmark-fill"></i> Active Borrows</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ authors_count }}</h3>
+                    <p class="lead"><i class="bi bi-person-workspace"></i> Authors</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+<section class="about-section py-5">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <img src="{% static 'images/collapse.jpg' %}" alt="About" class="img-fluid rounded-lg shadow about-img">
+            </div>
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold mb-4">About Our System</h2>
+                <p class="lead mb-3">
+                    Our Library Management System is designed to streamline the operations of university libraries. 
+                    It provides a user-friendly interface for both students and librarians.
+                </p>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i> 
+                        <strong>Efficient Book Management:</strong> Organize and track books effortlessly.
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i> 
+                        <strong>Student Tracking:</strong> Manage student records and borrowing history.
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i> 
+                        <strong>Real-time Updates:</strong> Get instant notifications for overdue books and fines.
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i> 
+                        <strong>Secure Access:</strong> Role-based authentication for secure access.
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i> 
+                        <strong>Comprehensive Reports:</strong> Generate detailed reports for library statistics.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* About Section Image - Make it smaller */
+    .about-img {
+        max-width: 350px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        object-fit: cover;
+    }
+
+    .about-section {
+        background-color: var(--bg-primary);
+    }
+
+    .about-section h2 {
+        color: var(--text-primary);
+    }
+
+    .about-section p {
+        color: var(--text-secondary);
+    }
+
+    .about-section li {
+        color: var(--text-primary);
+    }
+
+    /* Responsive - stack on mobile */
+    @media (max-width: 991.98px) {
+        .about-img {
+            max-width: 300px;
+            margin-bottom: 2rem;
+        }
+    }
+</style>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5" style="background-color: #ffffff;">
+        <div class="container py-5 text-center">
+            <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
+            <p class="lead mb-4 text-muted">
+                Join our library community and explore thousands of books from around the world.
+            </p>
+            {% if request.session.is_admin or request.session.is_student %}
+                {% if request.session.is_admin %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-lg dashboard-btn">
+                        <i class="bi bi-speedometer"></i> Go to Admin Dashboard
+                    </a>
+                {% elif request.session.is_student %}
+                    <a href="{% url 'student_dashboard' %}" class="btn btn-lg dashboard-btn">
+                        <i class="bi bi-person"></i> Go to My Dashboard
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'student_signup' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="bi bi-person-plus"></i> Sign Up Now
+                </a>
+                <a href="{% url 'login_choice' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<style>
+    .hero-section {
+        background-image: url('{% static "images/library-background.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        color: white;
+        position: relative;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 0;
+    }
+    
+    .hero-section .container-fluid {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-section h1 {
+        color: white;
+        font-weight: 700;
+    }
+    
+    .hero-section .lead {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.25rem;
+    }
+    
+    .features-section {
+        background-color: #ffffff;
+    }
+    
+    .card {
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+    }
+    
+    .stats-section {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+    }
+    
+    .about-section {
+        background-color: #fff;
+    }
+    
+    .cta-section {
+        background-color: #ffffff;
+    }
+    
+    .btn {
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.75rem 1.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .rounded-lg {
+        border-radius: 1rem;
+    }
+    
+    /* Ensure search form is clickable */
+    .hero-section form {
+        position: relative;
+        z-index: 10;
+    }
+    
+    .hero-section .form-control,
+    .hero-section .btn {
+        cursor: pointer;
+        pointer-events: auto;
+    }
+    
+    /* Ensure dashboard buttons are clickable and visible */
+    .hero-section .btn {
+        pointer-events: auto;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .hero-section .d-flex {
+        position: relative;
+        z-index: 10;
+    }
+    
+    .hero-section .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    /* Purple Dashboard Button */
+    .dashboard-btn {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        color: white;
+    }
+    
+    .dashboard-btn:hover {
+        background-color: #5a32a3;
+        border-color: #5a32a3;
+        color: white;
+        box-shadow: 0 4px 12px rgba(111, 66, 193, 0.4);
+    }
+    
+    .books-section .form-select {
+        cursor: pointer;
+    }
+    
+    .card {
+        transition: transform 0.2s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-3px);
+    }
+</style>
+
+{% endblock %}

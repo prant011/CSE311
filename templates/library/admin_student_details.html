@@ -1,0 +1,164 @@
+{% extends "library/base.html" %}
+{% load static %}
+
+{% block title %}Student Details - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Student Profile</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if student.profile_image %}
+                            <img src="{{ student.profile_image.url }}" alt="Profile" class="rounded-circle" width="120" height="120">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                <i class="bi bi-person-fill" style="font-size: 3rem; color: #6c757d;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h5>{{ student.full_name }}</h5>
+                    <p class="text-muted mb-3">{{ student.student_id }}</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_student_edit' student.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'admin_change_password' student.id %}" class="btn btn-danger btn-sm">Change Password</a>
+                        <a href="{% url 'admin_students' %}" class="btn btn-secondary btn-sm">Back</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Email:</strong>
+                            <p>{{ student.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Phone:</strong>
+                            <p>{{ student.phone|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Username:</strong>
+                            <p>{{ student.username }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Department:</strong>
+                            <p>{{ student.department|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Status:</strong>
+                            <p>
+                                {% if student.is_active %}
+                                    <span class="badge bg-success">{{ student.status|title }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Enrollment Year:</strong>
+                            <p>{{ student.enrollment_year|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Member Since:</strong>
+                            <p>{{ student.created_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Last Login:</strong>
+                            <p>{{ student.last_login|date:"M d, Y H:i"|default:"Never" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Borrowing Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h6>Books Borrowed</h6>
+                            <h3 class="text-primary">{{ borrowed_count }}</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Currently Borrowed</h6>
+                            <h3 class="text-warning">{{ current_borrowed }}</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Outstanding Fines</h6>
+                            <h3 class="text-danger">${{ total_fines }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Recent Borrowed Books</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_borrows %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Book Title</th>
+                                        <th>Borrow Date</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for issue in issues %}
+                                        <tr>
+                                            <td>{{ issue.book.title }}</td>
+                                            <td>{{ issue.request_date|date:"M d, Y" }}</td>
+                                            <td>
+                                                {% if issue.status == 'issued' %}
+                                                    {{ issue.issue_date|date:"M d, Y"|default:"N/A" }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if issue.status == 'returned' %}
+                                                    <span class="badge bg-success">Returned</span>
+                                                {% elif issue.status == 'issued' %}
+                                                    <span class="badge bg-info">Issued</span>
+                                                {% elif issue.status == 'rejected' %}
+                                                    <span class="badge bg-danger">Rejected</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Requested</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No borrowed books.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

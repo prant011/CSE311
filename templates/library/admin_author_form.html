@@ -1,0 +1,50 @@
+{% extends "library/base.html" %}
+
+{% block title %}{% if author %}Edit{% else %}Add{% endif %} Author{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% if author %}Edit Author{% else %}Add New Author{% endif %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Author Name *</label>
+                            <input type="text" name="name" class="form-control" value="{{ author.name|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Biography</label>
+                            <textarea name="bio" class="form-control" rows="5">{{ author.bio|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Birth Date</label>
+                            <input type="date" name="birth_date" class="form-control" value="{{ author.birth_date|default:'' }}">
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'admin_authors' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">{% if author %}Update{% else %}Add{% endif %} Author</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends "library/base.html" %}
+{% load static %}
+
+{% block title %}Mark Fine as Paid - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0"><i class="bi bi-check-circle"></i> Mark Fine as Paid</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Fine Information Display -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong><i class="bi bi-receipt"></i> Fine ID:</strong></p>
+                                    <p class="text-muted">#{{ fine.id }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong><i class="bi bi-person"></i> Student:</strong></p>
+                                    <p class="text-muted">{{ fine.student.user.first_name }} {{ fine.student.user.last_name }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong><i class="bi bi-chat-left-text"></i> Reason:</strong></p>
+                                    <p class="text-muted">{{ fine.reason }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong><i class="bi bi-calendar-event"></i> Issue Date:</strong></p>
+                                    <p class="text-muted">{{ fine.issue_date|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong><i class="bi bi-currency-dollar"></i> Amount:</strong></p>
+                                    <p class="text-danger h5">${{ fine.amount }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong><i class="bi bi-calendar-check"></i> Due Date:</strong></p>
+                                    <p class="text-muted">{{ fine.due_date|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="mb-1"><strong><i class="bi bi-tag"></i> Current Status:</strong></p>
+                                    <p>
+                                        {% if fine.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Pending</span>
+                                        {% elif fine.status == 'paid' %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Paid</span>
+                                        {% elif fine.status == 'waived' %}
+                                            <span class="badge bg-info"><i class="bi bi-x-circle"></i> Waived</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if fine.description %}
+                        <div class="alert alert-info">
+                            <strong><i class="bi bi-info-circle"></i> Description:</strong>
+                            <p class="mb-0">{{ fine.description }}</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Payment Form -->
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        <fieldset>
+                            <legend><i class="bi bi-credit-card"></i> Payment Information</legend>
+
+                            <div class="mb-3">
+                                <label for="payment_method" class="form-label">
+                                    <i class="bi bi-wallet2"></i> Payment Method *
+                                </label>
+                                <select class="form-select" id="payment_method" name="payment_method" required>
+                                    <option value="">Select payment method...</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="check">Check</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                    <option value="online">Online Payment</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="payment_date" class="form-label">
+                                    <i class="bi bi-calendar-check"></i> Payment Date *
+                                </label>
+                                <input type="date" class="form-control" id="payment_date" name="payment_date" required>
+                                <small class="form-text text-muted d-block mt-1">Enter the date when the payment was received</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="transaction_id" class="form-label">
+                                    <i class="bi bi-hash"></i> Transaction ID / Reference Number
+                                </label>
+                                <input type="text" class="form-control" id="transaction_id" name="transaction_id" placeholder="e.g., TXN123456">
+                                <small class="form-text text-muted d-block mt-1">Optional: Enter transaction or check number for records</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">
+                                    <i class="bi bi-pencil"></i> Payment Notes
+                                </label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Any additional payment notes..."></textarea>
+                                <small class="form-text text-muted d-block mt-1">Optional: Add any additional information about this payment</small>
+                            </div>
+                        </fieldset>
+
+                        <div class="card bg-light border-0 mb-3">
+                            <div class="card-body">
+                                <p class="mb-0"><i class="bi bi-info-circle"></i> <strong>Note:</strong> This will update the fine status to "Paid" and record the payment details in the system.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'admin_fines' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Mark as Paid
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    }
+    
+    fieldset {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    legend {
+        font-size: 0.95rem;
+        font-weight: 600;
+        width: auto;
+        padding: 0 0.5rem;
+        color: #198754;
+    }
+    
+    .card-header {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn {
+        border-radius: 0.375rem;
+        font-weight: 500;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "library/base.html" %}
+{% load static %}
+
+{% block title %}{% if student %}Edit{% else %}Add{% endif %} Student{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% if student %}Edit Student{% else %}Add New Student{% endif %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <fieldset>
+                            <legend class="mb-3">User Information</legend>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">First Name *</label>
+                                    <input type="text" name="first_name" class="form-control" value="{{ student.first_name|default:'' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Last Name *</label>
+                                    <input type="text" name="last_name" class="form-control" value="{{ student.last_name|default:'' }}" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" name="email" class="form-control" value="{{ student.email|default:'' }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Username *</label>
+                                <input type="text" name="username" class="form-control" value="{{ student.username|default:'' }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Password {% if student %}Leave blank to keep current password{% else %}*{% endif %}</label>
+                                <input type="password" name="password" class="form-control" {% if not student %}required{% endif %} placeholder="{% if student %}Enter new password or leave blank{% else %}Enter password{% endif %}">
+                                <small class="text-muted">{% if student %}Only enter if you want to change the password{% else %}Minimum 6 characters{% endif %}</small>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend class="mb-3">Student Information</legend>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Student ID *</label>
+                                    <input type="text" name="student_id" class="form-control" value="{{ student.student_id|default:'' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Phone</label>
+                                    <input type="text" name="phone" class="form-control" value="{{ student.phone|default:'' }}" placeholder="+880">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Department</label>
+                                <select name="department" class="form-select">
+                                    <option value="">Select Department</option>
+                                    <option value="Department of Economics" {% if student.department == "Department of Economics" %}selected{% endif %}>Department of Economics</option>
+                                    <option value="Department of General and Continuing Education" {% if student.department == "Department of General and Continuing Education" %}selected{% endif %}>Department of General and Continuing Education</option>
+                                    <option value="Department of English" {% if student.department == "Department of English" %}selected{% endif %}>Department of English</option>
+                                    <option value="Department of Electrical Engineering & Computer Science" {% if student.department == "Department of Electrical Engineering & Computer Science" %}selected{% endif %}>Department of Electrical Engineering & Computer Science</option>
+                                    <option value="Department of Architecture" {% if student.department == "Department of Architecture" %}selected{% endif %}>Department of Architecture</option>
+                                    <option value="Department of Environmental Science and Management" {% if student.department == "Department of Environmental Science and Management" %}selected{% endif %}>Department of Environmental Science and Management</option>
+                                    <option value="Department of Biochemistry and Microbiology" {% if student.department == "Department of Biochemistry and Microbiology" %}selected{% endif %}>Department of Biochemistry and Microbiology</option>
+                                    <option value="Department of Public Health" {% if student.department == "Department of Public Health" %}selected{% endif %}>Department of Public Health</option>
+                                    <option value="Department of Pharmacy" {% if student.department == "Department of Pharmacy" %}selected{% endif %}>Department of Pharmacy</option>
+                                </select>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Gender</label>
+                                    <select name="gender" class="form-select">
+                                        <option value="">Select Gender</option>
+                                        <option value="male" {% if student.gender == "male" %}selected{% endif %}>Male</option>
+                                        <option value="female" {% if student.gender == "female" %}selected{% endif %}>Female</option>
+                                        <option value="other" {% if student.gender == "other" %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Enrollment Year</label>
+                                    <input type="number" name="enrollment_year" class="form-control" value="{{ student.enrollment_year|default:'' }}" placeholder="e.g., 2024">
+                                </div>
+                            </div>
+                            
+                            {% if not student %}
+                            <div class="mb-3">
+                                <label class="form-label">Profile Image</label>
+                                <input type="file" name="profile_image" class="form-control" accept="image/*">
+                                <small class="text-muted">Optional - Upload profile picture</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if student %}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="active" {% if student.status == "active" %}selected{% endif %}>Active</option>
+                                        <option value="inactive" {% if student.status == "inactive" %}selected{% endif %}>Inactive</option>
+                                        <option value="suspended" {% if student.status == "suspended" %}selected{% endif %}>Suspended</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input type="checkbox" name="is_active" class="form-check-input" {% if student.is_active %}checked{% endif %} id="is_active">
+                                        <label class="form-check-label" for="is_active">Active Account</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Profile Image</label>
+                                <input type="file" name="profile_image" class="form-control" accept="image/*">
+                                {% if student.profile_image %}
+                                    <small class="text-muted">Current: {{ student.profile_image.name }}</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </fieldset>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'admin_students' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">{% if student %}Update{% else %}Add{% endif %} Student</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 0.375rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    fieldset {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    legend {
+        font-size: 1rem;
+        font-weight: 600;
+        width: auto;
+        padding: 0 0.5rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home - Library Management System{% endblock %}
+
+{% block content %}
+<div class="public-home">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container-fluid">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6 px-5">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="bi bi-book"></i> Welcome to University Library
+                    </h1>
+                    <p class="lead mb-4">
+                        Discover a world of knowledge with our comprehensive library management system. 
+                        Easily search for books, manage your borrowing records, and stay connected with the library.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        {% if user.is_authenticated %}
+                            {% if user.is_staff %}
+                                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-speedometer"></i> Admin Dashboard
+                                </a>
+                            {% else %}
+                                <a href="{% url 'student_dashboard' %}" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-person"></i> My Dashboard
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                            <a href="{% url 'signup' %}" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-person-plus"></i> Sign Up
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <img src="{% static 'images/library-hero.png' %}" alt="Library" class="img-fluid" style="max-height: 500px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section py-5 bg-light">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">
+                    <i class="bi bi-lightning"></i> Our Features
+                </h2>
+                <p class="lead text-muted">Powerful tools designed for efficient library management</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Feature 1 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body text-center">
+                            <div class="feature-icon mb-3">
+                                <i class="bi bi-search text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Easy Search</h5>
+                            <p class="card-text text-muted">
+                                Search and filter books by title, author, or category instantly.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body text-center">
+                            <div class="feature-icon mb-3">
+                                <i class="bi bi-bookmark text-success" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Book Borrowing</h5>
+                            <p class="card-text text-muted">
+                                Easily borrow and return books with automated tracking.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body text-center">
+                            <div class="feature-icon mb-3">
+                                <i class="bi bi-person-check text-info" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Member Profile</h5>
+                            <p class="card-text text-muted">
+                                Manage your profile and track your borrowing history.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body text-center">
+                            <div class="feature-icon mb-3">
+                                <i class="bi bi-receipt text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Fine Management</h5>
+                            <p class="card-text text-muted">
+                                Track and manage library fines with ease.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body text-center">
+                            <div class="feature-icon mb-3">
+                                <i class="bi bi-chat-left-text text-danger" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Issue Reporting</h5>
+                            <p class="card-text text-muted">
+                                Report issues with books and get quick resolutions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="card-body text-center">
+                            <div class="feature-icon mb-3">
+                                <i class="bi bi-speedometer text-secondary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Admin Dashboard</h5>
+                            <p class="card-text text-muted">
+                                Comprehensive admin tools for library management.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section py-5 bg-primary text-white">
+        <div class="container py-5">
+            <div class="row text-center g-4">
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ total_books }}</h3>
+                    <p class="lead"><i class="bi bi-book"></i> Total Books</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ total_members }}</h3>
+                    <p class="lead"><i class="bi bi-people"></i> Members</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ active_borrows }}</h3>
+                    <p class="lead"><i class="bi bi-bookmark-fill"></i> Active Borrows</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-6 fw-bold">{{ authors_count }}</h3>
+                    <p class="lead"><i class="bi bi-person-workspace"></i> Authors</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section py-5">
+        <div class="container py-5">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <img src="{% static 'images/about-library.png' %}" alt="About" class="img-fluid rounded-lg shadow">
+                </div>
+                <div class="col-lg-6">
+                    <h2 class="display-5 fw-bold mb-4">About Our System</h2>
+                    <p class="lead mb-3">
+                        Our Library Management System is designed to streamline the operations of university libraries. 
+                        It provides a user-friendly interface for both students and librarians.
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> 
+                            <strong>Efficient Book Management:</strong> Organize and track books effortlessly.
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> 
+                            <strong>Student Tracking:</strong> Manage student records and borrowing history.
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> 
+                            <strong>Real-time Updates:</strong> Get instant notifications for overdue books and fines.
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> 
+                            <strong>Secure Access:</strong> Role-based authentication for secure access.
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> 
+                            <strong>Comprehensive Reports:</strong> Generate detailed reports for library statistics.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5 bg-light">
+        <div class="container py-5 text-center">
+            <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
+            <p class="lead mb-4 text-muted">
+                Join our library community and explore thousands of books from around the world.
+            </p>
+            {% if user.is_authenticated %}
+                {% if user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-speedometer"></i> Go to Admin Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'student_dashboard' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-person"></i> Go to My Dashboard
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'signup' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="bi bi-person-plus"></i> Sign Up Now
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+    }
+    
+    .hero-section h1 {
+        color: white;
+        font-weight: 700;
+    }
+    
+    .hero-section .lead {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.25rem;
+    }
+    
+    .features-section {
+        background-color: #f8f9fa;
+    }
+    
+    .card {
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+    }
+    
+    .stats-section {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+    }
+    
+    .about-section {
+        background-color: #fff;
+    }
+    
+    .cta-section {
+        background-color: #f8f9fa;
+    }
+    
+    .btn {
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.75rem 1.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .rounded-lg {
+        border-radius: 1rem;
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "library/base.html" %}
+{% load static %}
+
+{% block title %}Accept Issue - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Accept Issue Report</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Issue ID:</strong></label>
+                        <p>#{{ issue.id }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Student:</strong></label>
+                        <p>{{ issue.student.user.first_name }} {{ issue.student.user.last_name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Book:</strong></label>
+                        <p>{{ issue.book.title }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Issue Type:</strong></label>
+                        <p>{{ issue.issue_type }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Description:</strong></label>
+                        <p>{{ issue.description }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Date Reported:</strong></label>
+                        <p>{{ issue.date_reported|date:"M d, Y H:i" }}</p>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="resolution" class="form-label">Resolution Notes</label>
+                            <textarea class="form-control" id="resolution" name="resolution" rows="4" placeholder="Enter your resolution notes here..." required></textarea>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'admin_issues' %}" class="btn btn-secondary">Back</a>
+                            <button type="submit" class="btn btn-success">Accept & Resolve</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

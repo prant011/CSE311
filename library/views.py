@@ -1280,71 +1280,66 @@ def admin_change_password(request, pk):
 
 @admin_required
 def admin_fines(request):
-    """Admin fines management"""
-    admin = get_current_admin(request)
+    """View all fines"""
+    fines = Fine.objects.all().select_related('student', 'issue_request').order_by('-created_at')
     
-    if not admin:
-        messages.error(request, 'Session expired. Please login again.')
-        return redirect('admin_login')
-    
-    filter_by = request.GET.get('filter', 'all')
-    fines = Fine.objects.select_related('student', 'issue_request').order_by('-created_at')
-    
-    if filter_by == 'unpaid':
-        fines = fines.filter(is_paid=False)
-    elif filter_by == 'paid':
-        fines = fines.filter(is_paid=True)
-    
+    # Calculate statistics
     total_unpaid = fines.filter(is_paid=False).aggregate(models.Sum('amount'))['amount__sum'] or 0
     total_paid = fines.filter(is_paid=True).aggregate(models.Sum('amount'))['amount__sum'] or 0
-
-    # Provide a safe create URL for the template. 
-    # The admin_fine_create view expects an issue_id; leave '#' so template won't reverse without arg.
-    create_fine_url = '#'
+    pending_count = fines.filter(is_paid=False).count()
     
     context = {
-        'admin': admin,
         'fines': fines,
-        'filter': filter_by,
         'total_unpaid': total_unpaid,
         'total_paid': total_paid,
-        'create_fine_url': create_fine_url,
+        'pending_count': pending_count,
     }
     return render(request, 'library/admin_fines.html', context)
 
 
 @admin_required
 def admin_fine_create(request, issue_id):
-    """Create fine for an issue"""
+    """Create fine from issue"""
     admin = get_current_admin(request)
     
     if not admin:
         messages.error(request, 'Session expired. Please login again.')
         return redirect('admin_login')
     
-    issue_request = get_object_or_404(IssueRequest, id=issue_id)
+    issue = get_object_or_404(IssueRequest, id=issue_id)
+    
+    # Calculate fine
+    today = timezone.now().date()
+    due_date = issue.expected_return_date
+    
+    if due_date and today > due_date:
+        days_overdue = (today - due_date).days
+        fine_amount = days_overdue * 5.00
+    else:
+        fine_amount = 0.00
     
     if request.method == 'POST':
-        amount = request.POST.get('amount')
-        days_overdue = request.POST.get('days_overdue', 0)
-        
         try:
-            fine = Fine.objects.create(
-                issue_request=issue_request,
-                student=issue_request.student,
-                amount=amount,
-                days_overdue=int(days_overdue),
+            fine, created = Fine.objects.get_or_create(
+                issue_request=issue,
+                defaults={
+                    'student': issue.student,
+                    'amount': fine_amount,
+                    'days_overdue': int((today - due_date).days) if due_date else 0,
+                    'description': f'Book overdue: {issue.book.title}',
+                }
             )
-            messages.success(request, f'Fine of ৳{amount} created for {issue_request.student.full_name}')
+            
+            messages.success(request, f'Fine created: ৳{fine_amount}')
             return redirect('admin_fines')
         except Exception as e:
             messages.error(request, f'Error creating fine: {str(e)}')
     
-    context = {
+    return render(request, 'library/admin_fine_create.html', {
         'admin': admin,
-        'issue_request': issue_request,
-    }
-    return render(request, 'library/admin_fine_create.html', context)
+        'issue': issue,
+        'fine_amount': fine_amount,
+    })
 
 
 @admin_required
@@ -1356,12 +1351,12 @@ def admin_fine_mark_paid(request, pk):
         messages.error(request, 'Session expired. Please login again.')
         return redirect('admin_login')
     
-    fine = get_object_or_404(Fine, pk=pk)
+    fine = get_object_or_404(Fine, id=pk)
     
     if request.method == 'POST':
         payment_method = request.POST.get('payment_method', 'cash')
         fine.mark_as_paid(payment_method=payment_method)
-        messages.success(request, f'Fine marked as paid!')
+        messages.success(request, 'Fine marked as paid!')
         return redirect('admin_fines')
     
     context = {
@@ -1413,153 +1408,15 @@ def admin_fine_select_issue(request):
     }
     return render(request, 'library/admin_fine_select_issue.html', context)
 
-def admin_fine_select_issue(request):
-    """Select issue to create fine automatically"""
-    # Get all issued books that are overdue or not yet returned
-    issues = IssueRequest.objects.filter(
-        status='issued',
-        return_date__isnull=True
-    ).select_related('student', 'book')
-    
-    if request.method == 'POST':
-        issue_id = request.POST.get('issue_id')
-        try:
-            issue = IssueRequest.objects.get(id=issue_id)
-            
-            # Calculate fine
-            today = timezone.now().date()
-            due_date = issue.issue_date + timedelta(days=14)  # DEFAULT_ISSUE_DAYS
-            
-            if today > due_date:
-                days_overdue = (today - due_date).days
-                fine_amount = days_overdue * 5.00  # FINE_PER_DAY
-            else:
-                fine_amount = 0.00
-            
-            # Create or update fine
-            fine, created = Fine.objects.get_or_create(
-                issue=issue,
-                defaults={
-                    'student': issue.student,
-                    'amount': fine_amount,
-                    'reason': f'Book overdue: {issue.book.title}',
-                    'status': 'unpaid'
-                }
-            )
-            
-            if not created:
-                fine.amount = fine_amount
-                fine.save()
-            
-            messages.success(request, f'Fine created successfully: ৳{fine_amount}')
-            return redirect('admin_fines')
-        except IssueRequest.DoesNotExist:
-            messages.error(request, 'Issue not found')
-    
-    return render(request, 'library/admin_fine_select_issue.html', {
-        'issues': issues
-    })
 
-def admin_fine_create_custom(request):
-    """Create fine manually for a student"""
-    students = Student.objects.all().select_related('user')
-    
-    if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        amount = request.POST.get('amount')
-        reason = request.POST.get('reason')
-        
-        try:
-            student = Student.objects.get(id=student_id)
-            
-            # Create custom fine without issue
-            fine = Fine.objects.create(
-                student=student,
-                issue=None,
-                amount=float(amount),
-                reason=reason,
-                status='unpaid'
-            )
-            
-            messages.success(request, f'Custom fine created for {student.user.get_full_name()}')
-            return redirect('admin_fines')
-        except Student.DoesNotExist:
-            messages.error(request, 'Student not found')
-        except ValueError:
-            messages.error(request, 'Invalid amount')
-    
-    return render(request, 'library/admin_fine_create_custom.html', {
-        'students': students
-    })
-
-# Admin - Fines Management
-def admin_fines(request):
-    """View all fines"""
-    fines = Fine.objects.all().select_related('student', 'issue').order_by('-created_date')
-    
-    # Calculate statistics
-    total_unpaid = fines.filter(status='unpaid').aggregate(models.Sum('amount'))['amount__sum'] or 0
-    total_paid = fines.filter(status='paid').aggregate(models.Sum('amount'))['amount__sum'] or 0
-    pending_count = fines.filter(status='unpaid').count()
-    waived_count = fines.filter(status='waived').count()
-    
-    context = {
-        'fines': fines,
-        'total_unpaid': total_unpaid,
-        'total_paid': total_paid,
-        'pending_count': pending_count,
-        'waived_count': waived_count,
-    }
-    return render(request, 'library/admin_fines.html', context)
-
-def admin_fine_select_issue(request):
-    """Select issue to create fine automatically"""
-    issues = IssueRequest.objects.filter(
-        status='issued',
-        return_date__isnull=True
-    ).select_related('student', 'book')
-    
-    if request.method == 'POST':
-        issue_id = request.POST.get('issue_id')
-        try:
-            issue = IssueRequest.objects.get(id=issue_id)
-            
-            # Calculate fine
-            today = timezone.now().date()
-            due_date = issue.issue_date + timedelta(days=14)
-            
-            if today > due_date:
-                days_overdue = (today - due_date).days
-                fine_amount = days_overdue * 5.00
-            else:
-                fine_amount = 0.00
-            
-            # Create or update fine
-            fine, created = Fine.objects.get_or_create(
-                issue=issue,
-                defaults={
-                    'student': issue.student,
-                    'amount': fine_amount,
-                    'reason': f'Book overdue: {issue.book.title}',
-                    'status': 'unpaid'
-                }
-            )
-            
-            if not created:
-                fine.amount = fine_amount
-                fine.save()
-            
-            messages.success(request, f'Fine created successfully: ৳{fine_amount}')
-            return redirect('admin_fines')
-        except IssueRequest.DoesNotExist:
-            messages.error(request, 'Issue not found')
-    
-    return render(request, 'library/admin_fine_select_issue.html', {
-        'issues': issues
-    })
-
+@admin_required
 def admin_fine_create_custom(request):
     """Create custom fine for a student"""
+    admin = get_current_admin(request)
+    
+    if not admin:
+        messages.error(request, 'Session expired. Please login again.')
+        return redirect('admin_login')
     
     if request.method == 'POST':
         student_id = request.POST.get('student_id')
@@ -1568,8 +1425,9 @@ def admin_fine_create_custom(request):
         
         if not student_id or not amount or not reason:
             messages.error(request, 'All fields are required')
-            students = Student.objects.all().select_related('user')
+            students = Student.objects.all().order_by('first_name')
             return render(request, 'library/admin_fine_create_custom.html', {
+                'admin': admin,
                 'students': students
             })
         
@@ -1579,21 +1437,21 @@ def admin_fine_create_custom(request):
             
             if amount <= 0:
                 messages.error(request, 'Amount must be greater than 0')
-                students = Student.objects.all().select_related('user')
+                students = Student.objects.all().order_by('first_name')
                 return render(request, 'library/admin_fine_create_custom.html', {
+                    'admin': admin,
                     'students': students
                 })
             
             # Create custom fine
             fine = Fine.objects.create(
                 student=student,
-                issue=None,
                 amount=amount,
-                reason=reason,
-                status='unpaid'
+                description=reason,
+                is_paid=False
             )
             
-            messages.success(request, f'Custom fine created for {student.user.get_full_name()} - ৳{amount}')
+            messages.success(request, f'Custom fine created for {student.full_name} - ৳{amount}')
             return redirect('admin_fines')
             
         except Student.DoesNotExist:
@@ -1601,59 +1459,8 @@ def admin_fine_create_custom(request):
         except ValueError:
             messages.error(request, 'Invalid amount entered')
     
-    # GET request - show form with student list
-    students = Student.objects.all().select_related('user').order_by('user__first_name')
+    students = Student.objects.all().order_by('first_name')
     return render(request, 'library/admin_fine_create_custom.html', {
+        'admin': admin,
         'students': students
     })
-
-def admin_fine_create(request, issue_id):
-    """Create fine from issue"""
-    issue = get_object_or_404(IssueRequest, id=issue_id)
-    
-    # Calculate fine
-    today = timezone.now().date()
-    due_date = issue.issue_date + timedelta(days=14)
-    
-    if today > due_date:
-        days_overdue = (today - due_date).days
-        fine_amount = days_overdue * 5.00
-    else:
-        fine_amount = 0.00
-    
-    if request.method == 'POST':
-        try:
-            fine, created = Fine.objects.get_or_create(
-                issue=issue,
-                defaults={
-                    'student': issue.student,
-                    'amount': fine_amount,
-                    'reason': f'Book overdue: {issue.book.title}',
-                    'status': 'unpaid'
-                }
-            )
-            
-            messages.success(request, f'Fine created: ৳{fine_amount}')
-            return redirect('admin_fines')
-        except Exception as e:
-            messages.error(request, f'Error creating fine: {str(e)}')
-    
-    return render(request, 'library/admin_fine_create.html', {
-        'issue': issue,
-        'fine_amount': fine_amount,
-    })
-
-def admin_fine_mark_paid(request, pk):
-    """Mark fine as paid"""
-    fine = get_object_or_404(Fine, id=pk)
-    fine.status = 'paid'
-    fine.save()
-    messages.success(request, f'Fine marked as paid')
-    return redirect('admin_fines')
-
-def admin_fine_delete(request, pk):
-    """Delete fine"""
-    fine = get_object_or_404(Fine, id=pk)
-    fine.delete()
-    messages.success(request, 'Fine deleted successfully')
-    return redirect('admin_fines')

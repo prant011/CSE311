@@ -125,8 +125,7 @@ python manage.py runserver
 ## 👨‍💻 Developer
 
 **Farhin Ahmed Pranto**
-- ID: 2312734
-- Section: 09
+
 
 ## 📄 License
 

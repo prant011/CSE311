@@ -268,6 +268,8 @@ class IssueRequest(models.Model):
                 fine.save()
 
 
+# ...existing code...
+
 class Fine(models.Model):
     PAYMENT_METHODS = [
         ('bkash', 'bKash'),
@@ -275,8 +277,9 @@ class Fine(models.Model):
         ('card', 'Card'),
     ]
     
-    issue_request = models.OneToOneField(IssueRequest, on_delete=models.CASCADE)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    # Change from OneToOneField to ForeignKey to allow multiple fines per issue
+    issue_request = models.ForeignKey(IssueRequest, on_delete=models.CASCADE, null=True, blank=True, related_name='fines')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='fines')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     days_overdue = models.IntegerField(default=0)
     description = models.TextField(blank=True, null=True)

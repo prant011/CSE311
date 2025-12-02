@@ -34,7 +34,7 @@
 - 🔐 **Secure Authentication**: Signup/Login with validation
 - 📚 **Easy Book Requests**: Simple process to request books
 - 📱 **Track Status**: Monitor book issues (requested/issued/returned)
-- 💳 **Online Payments**: Pay fines securely via bKash integration
+- 💳 **Online Payments**: Pay fines securely via payment integration
 
 ### 👨‍💼 For Administrators
 - 📊 **Comprehensive Dashboard**: Real-time statistics and insights

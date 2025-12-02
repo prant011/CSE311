@@ -231,15 +231,50 @@ def validate_student_id(request):
     return JsonResponse({'exists': False})
 
 
+@require_http_methods(["GET"])
 def validate_username(request):
-    """AJAX validation for username"""
-    username = request.GET.get('username', '')
+    """AJAX validation for username with detailed response"""
+    username = request.GET.get('username', '').strip()
     
-    if username:
-        exists = Student.objects.filter(username=username).exists()
-        return JsonResponse({'exists': exists})
+    if not username:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Username is required',
+            'available': False
+        }, status=400)
     
-    return JsonResponse({'exists': False})
+    # Check length
+    if len(username) < 3:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Username must be at least 3 characters',
+            'available': False
+        })
+    
+    # Check if username exists
+    exists = Student.objects.filter(username__iexact=username).exists()
+    
+    if exists:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Username is already taken',
+            'available': False
+        })
+    
+    # Check for valid characters (letters, numbers, underscores)
+    if not username.replace('_', '').isalnum():
+        return JsonResponse({
+            'valid': False,
+            'message': 'Username can only contain letters, numbers, and underscores',
+            'available': False
+        })
+    
+    # Username is available
+    return JsonResponse({
+        'valid': True,
+        'message': 'Username is available',
+        'available': True
+    })
 
 
 def forgot_password(request):

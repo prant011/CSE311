@@ -43,13 +43,43 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Student ID *</label>
-                                    <input type="text" name="student_id" id="student_id" class="form-control" required>
-                                    <small id="id-error" class="text-danger"></small>
+                                    <div class="position-relative">
+                                        <div class="input-group has-validation">
+                                            <input type="text" name="student_id" id="student_id" class="form-control" 
+                                                   required minlength="3" maxlength="30"
+                                                   pattern="[A-Za-z0-9-]+" 
+                                                   title="Enter your student ID"
+                                                   autocomplete="off">
+                                            <div id="student-id-status" class="input-group-text d-none">
+                                                <span class="spinner-border spinner-border-sm me-2" id="student-id-spinner" role="status" aria-hidden="true"></span>
+                                                <span id="student-id-status-text">Checking...</span>
+                                            </div>
+                                        </div>
+                                        <div id="student-id-feedback" class="form-text mt-1 d-flex align-items-center">
+                                            <i class="bi me-1" id="student-id-icon"></i>
+                                            <span id="student-id-message">Enter your student ID</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Username *</label>
-                                    <input type="text" name="username" id="username" class="form-control" required>
-                                    <small id="username-error" class="text-danger"></small>
+                                    <div class="position-relative">
+                                        <div class="input-group has-validation">
+                                            <input type="text" name="username" id="username" class="form-control" 
+                                                   required minlength="3" maxlength="30" 
+                                                   pattern="[A-Za-z0-9_]+" 
+                                                   title="3-30 characters, letters, numbers, and underscores only"
+                                                   autocomplete="username">
+                                            <div id="username-status" class="input-group-text d-none">
+                                                <span class="spinner-border spinner-border-sm me-2" id="username-spinner" role="status" aria-hidden="true"></span>
+                                                <span id="username-status-text">Checking...</span>
+                                            </div>
+                                        </div>
+                                        <div id="username-feedback" class="form-text mt-1 d-flex align-items-center">
+                                            <i class="bi me-1" id="username-icon"></i>
+                                            <span id="username-message">Enter your desired username</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -126,60 +156,298 @@
         </div>
     </div>
 
+    <style>
+        #username-status {
+            transition: all 0.3s ease;
+        }
+        #username-feedback {
+            height: 24px;
+            transition: all 0.3s ease;
+        }
+        #student-id-status {
+            transition: all 0.3s ease;
+        }
+        #student-id-feedback {
+            height: 24px;
+            transition: all 0.3s ease;
+        }
+        .input-group-text {
+            min-width: 150px;
+        }
+    </style>
     <script>
-        // Validate Student ID
-        document.getElementById('student_id').addEventListener('blur', function() {
-            const studentId = this.value.trim();
-            const errorDiv = document.getElementById('id-error');
-            
-            if (studentId) {
-                fetch(`/validate-student-id/?student_id=${encodeURIComponent(studentId)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.exists) {
-                            errorDiv.textContent = '⚠️ Student ID already exists!';
-                            this.classList.add('is-invalid');
-                        } else {
-                            errorDiv.textContent = '✓ Available';
-                            errorDiv.classList.add('text-success');
-                            this.classList.add('is-valid');
-                        }
-                    });
-            }
-        });
+        // Real-time Username Validation
+        const usernameInput = document.getElementById('username');
+        const usernameFeedback = document.getElementById('username-feedback');
+        const usernameMessage = document.getElementById('username-message');
+        const usernameIcon = document.getElementById('username-icon');
+        const usernameStatus = document.getElementById('username-status');
+        const usernameSpinner = document.getElementById('username-spinner');
+        const usernameStatusText = document.getElementById('username-status-text');
+        
+        let usernameCheckTimeout;
+        let lastCheckedUsername = '';
+        let isChecking = false;
 
-        // Validate Username
-        document.getElementById('username').addEventListener('blur', function() {
-            const username = this.value.trim();
-            const errorDiv = document.getElementById('username-error');
+        // Function to update UI state
+        function updateUsernameUI(state, message) {
+            // Reset all states first
+            usernameIcon.className = 'bi me-1';
+            usernameStatus.className = 'input-group-text d-none';
+            usernameInput.classList.remove('is-valid', 'is-invalid');
+            usernameFeedback.classList.remove('text-success', 'text-danger', 'text-muted');
             
-            if (username) {
+            switch(state) {
+                case 'loading':
+                    usernameStatus.className = 'input-group-text bg-light';
+                    usernameSpinner.className = 'spinner-border spinner-border-sm me-2';
+                    usernameStatusText.textContent = 'Checking...';
+                    usernameIcon.className = 'bi bi-hourglass me-1';
+                    usernameMessage.textContent = 'Checking availability...';
+                    usernameFeedback.classList.add('text-muted');
+                    break;
+                    
+                case 'success':
+                    usernameIcon.className = 'bi bi-check-circle-fill text-success me-1';
+                    usernameMessage.textContent = message || 'Username is available!';
+                    usernameInput.classList.add('is-valid');
+                    usernameFeedback.classList.add('text-success');
+                    break;
+                    
+                case 'error':
+                    usernameIcon.className = 'bi bi-x-circle-fill text-danger me-1';
+                    usernameMessage.textContent = message || 'Invalid username';
+                    usernameInput.classList.add('is-invalid');
+                    usernameFeedback.classList.add('text-danger');
+                    break;
+                    
+                default: // default/empty state
+                    usernameMessage.textContent = message || 'Enter your desired username';
+                    usernameFeedback.classList.add('text-muted');
+            }
+        }
+
+        // Function to validate username
+        function validateUsername(username) {
+            // Clear previous timeout
+            clearTimeout(usernameCheckTimeout);
+            
+            // If empty, reset to default state
+            if (!username) {
+                updateUsernameUI('default');
+                return;
+            }
+            
+            // Check length
+            if (username.length < 3) {
+                updateUsernameUI('error', 'Must be at least 3 characters');
+                return;
+            }
+            
+            // Check for valid characters
+            if (!/^[A-Za-z0-9_]+$/.test(username)) {
+                updateUsernameUI('error', 'Only letters, numbers, and underscores');
+                return;
+            }
+            
+            // Don't check again if we just checked this username
+            if (username === lastCheckedUsername) {
+                return;
+            }
+            
+            // Show loading state
+            updateUsernameUI('loading');
+            isChecking = true;
+            
+            // Debounce the API call
+            usernameCheckTimeout = setTimeout(() => {
                 fetch(`/validate-username/?username=${encodeURIComponent(username)}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.exists) {
-                            errorDiv.textContent = '⚠️ Username already taken!';
-                            this.classList.add('is-invalid');
+                        isChecking = false;
+                        lastCheckedUsername = username;
+                        
+                        if (data.available) {
+                            updateUsernameUI('success', 'Username is available!');
                         } else {
-                            errorDiv.textContent = '✓ Available';
-                            errorDiv.classList.add('text-success');
-                            this.classList.add('is-valid');
+                            updateUsernameUI('error', data.message || 'Username is not available');
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error checking username:', error);
+                        isChecking = false;
+                        updateUsernameUI('error', 'Error checking username');
                     });
+            }, 500); // 500ms delay
+        }
+        
+        // Add event listeners for real-time validation
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            // Only check if we're not already checking or if the value changed
+            if (!isChecking || username !== lastCheckedUsername) {
+                validateUsername(username);
             }
         });
+        
+        // Also validate on blur
+        usernameInput.addEventListener('blur', function() {
+            validateUsername(this.value.trim());
+        });
+        
+        // Real-time Student ID Validation
+        const studentIdInput = document.getElementById('student_id');
+        const studentIdFeedback = document.getElementById('student-id-feedback');
+        const studentIdMessage = document.getElementById('student-id-message');
+        const studentIdIcon = document.getElementById('student-id-icon');
+        const studentIdStatus = document.getElementById('student-id-status');
+        const studentIdSpinner = document.getElementById('student-id-spinner');
+        const studentIdStatusText = document.getElementById('student-id-status-text');
+        
+        let studentIdCheckTimeout;
+        let lastCheckedStudentId = '';
+        let isCheckingStudentId = false;
 
-        // Form validation
+        // Function to update Student ID UI state
+        function updateStudentIdUI(state, message) {
+            // Reset all states first
+            studentIdIcon.className = 'bi me-1';
+            studentIdStatus.className = 'input-group-text d-none';
+            studentIdInput.classList.remove('is-valid', 'is-invalid');
+            studentIdFeedback.classList.remove('text-success', 'text-danger', 'text-muted');
+            
+            switch(state) {
+                case 'loading':
+                    studentIdStatus.className = 'input-group-text bg-light';
+                    studentIdSpinner.className = 'spinner-border spinner-border-sm me-2';
+                    studentIdStatusText.textContent = 'Checking...';
+                    studentIdIcon.className = 'bi bi-hourglass me-1';
+                    studentIdMessage.textContent = 'Checking availability...';
+                    studentIdFeedback.classList.add('text-muted');
+                    break;
+                    
+                case 'success':
+                    studentIdIcon.className = 'bi bi-check-circle-fill text-success me-1';
+                    studentIdMessage.textContent = message || 'Student ID is available!';
+                    studentIdInput.classList.add('is-valid');
+                    studentIdFeedback.classList.add('text-success');
+                    break;
+                    
+                case 'error':
+                    studentIdIcon.className = 'bi bi-x-circle-fill text-danger me-1';
+                    studentIdMessage.textContent = message || 'Invalid Student ID';
+                    studentIdInput.classList.add('is-invalid');
+                    studentIdFeedback.classList.add('text-danger');
+                    break;
+                    
+                default: // default/empty state
+                    studentIdMessage.textContent = message || 'Enter your student ID';
+                    studentIdFeedback.classList.add('text-muted');
+            }
+        }
+
+        // Function to validate Student ID
+        function validateStudentId(studentId) {
+            // Clear previous timeout
+            clearTimeout(studentIdCheckTimeout);
+            
+            // If empty, reset to default state
+            if (!studentId) {
+                updateStudentIdUI('default');
+                return;
+            }
+            
+            // Check length
+            if (studentId.length < 3) {
+                updateStudentIdUI('error', 'Must be at least 3 characters');
+                return;
+            }
+            
+            // Don't check again if we just checked this ID
+            if (studentId === lastCheckedStudentId) {
+                return;
+            }
+            
+            // Show loading state
+            updateStudentIdUI('loading');
+            isCheckingStudentId = true;
+            
+            // Debounce the API call
+            studentIdCheckTimeout = setTimeout(() => {
+                fetch(`/validate-student-id/?student_id=${encodeURIComponent(studentId)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        isCheckingStudentId = false;
+                        lastCheckedStudentId = studentId;
+                        
+                        if (!data.exists) {
+                            updateStudentIdUI('success', 'Student ID is available!');
+                        } else {
+                            updateStudentIdUI('error', 'Student ID is already registered');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking student ID:', error);
+                        isCheckingStudentId = false;
+                        updateStudentIdUI('error', 'Error checking student ID');
+                    });
+            }, 500); // 500ms delay
+        }
+        
+        // Add event listeners for real-time validation
+        studentIdInput.addEventListener('input', function() {
+            const studentId = this.value.trim();
+            // Only check if we're not already checking or if the value changed
+            if (!isCheckingStudentId || studentId !== lastCheckedStudentId) {
+                validateStudentId(studentId);
+            }
+        });
+        
+        // Also validate on blur
+        studentIdInput.addEventListener('blur', function() {
+            validateStudentId(this.value.trim());
+        });
+
+        // Form validation on submit
         document.getElementById('signupForm').addEventListener('submit', function(e) {
             const password = document.querySelector('input[name="password"]').value;
             const password2 = document.querySelector('input[name="password2"]').value;
+            const username = usernameInput.value.trim();
+            const studentId = studentIdInput.value.trim();
+            
+            // If we're still checking, wait a moment
+            if (isChecking || isCheckingStudentId) {
+                e.preventDefault();
+                validateUsername(username);
+                validateStudentId(studentId);
+                setTimeout(() => this.submit(), 1000);
+                return false;
+            }
+            
+            // Check if username is valid
+            if (username && !usernameInput.classList.contains('is-valid')) {
+                e.preventDefault();
+                validateUsername(username);
+                usernameInput.focus();
+                return false;
+            }
+            
+            // Check if student ID is valid
+            if (studentId && !studentIdInput.classList.contains('is-valid')) {
+                e.preventDefault();
+                validateStudentId(studentId);
+                studentIdInput.focus();
+                return false;
+            }
 
+            // Check passwords match
             if (password !== password2) {
                 e.preventDefault();
                 alert('Passwords do not match!');
                 return false;
             }
 
+            // Check password length
             if (password.length < 6) {
                 e.preventDefault();
                 alert('Password must be at least 6 characters!');

@@ -1,12 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q, Sum
-from django.db import models
+from django.db import models, transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
-from .models import Admin, Student, Book, Author, IssueRequest, Fine
-from django.views.decorators.http import require_GET, require_http_methods
+from .models import Admin, Student, Book, Author, IssueRequest, Fine, Notification
+from django.views.decorators.http import require_http_methods, require_GET
+from django.contrib.auth.hashers import make_password, check_password
+from django.apps import apps
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # ============= AUTHENTICATION VIEWS =============
 
@@ -1409,36 +1415,53 @@ def admin_fine_select_issue(request):
     }
     return render(request, 'library/admin_fine_select_issue.html', context)
 
-
-@require_GET
+@require_http_methods(["GET"])
 @admin_required
 def admin_search_student(request):
-    """API endpoint to search for students by ID or name"""
-    query = request.GET.get('q', '').strip()
+    """Search for students by ID, name, email, or phone number"""
+    q = request.GET.get('q', '').strip()
+    print(f"Search query: {q}")  # Debug log
     
-    if not query:
+    if not q:
+        print("No search query provided")  # Debug log
         return JsonResponse({'results': []})
-    
-    # Search by student ID or name
-    students = Student.objects.filter(
-        Q(student_id__icontains=query) |
-        Q(first_name__icontains=query) |
-        Q(last_name__icontains=query) |
-        Q(username__icontains=query)
-    ).values('id', 'student_id', 'first_name', 'last_name', 'email', 'department')
-    
-    # Format the results
-    results = []
-    for student in students:
-        results.append({
-            'id': student['id'],
-            'student_id': student['student_id'],
-            'full_name': f"{student['first_name']} {student['last_name']}",
-            'email': student['email'],
-            'department': student['department']
-        })
-    
-    return JsonResponse({'results': results})
+
+    try:
+        # Broaden the search criteria
+        query = (
+            Q(student_id__icontains=q) |
+            Q(username__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(email__icontains=q) |
+            Q(phone__icontains=q)
+        )
+        
+        # Search in both active and inactive students
+        matches = Student.objects.filter(query).order_by('first_name')[:50]
+        
+        print(f"Found {matches.count()} matches")  # Debug log
+        
+        results = []
+        for student in matches:
+            full_name = f"{student.first_name} {student.last_name}".strip()
+            results.append({
+                'id': student.id,
+                'student_id': student.student_id or '',
+                'full_name': full_name,
+                'email': student.email or '',
+                'department': getattr(student, 'department', '') or '',
+                'phone': getattr(student, 'phone', '') or ''
+            })
+            
+            print(f"Added student: {full_name} (ID: {student.id})")  # Debug log
+
+        return JsonResponse({'results': results})
+        
+    except Exception as e:
+        print(f"Error in admin_search_student: {str(e)}")  # Debug log
+        return JsonResponse({'results': [], 'error': str(e)}, status=500)
+
 
 @require_http_methods(["GET", "POST"])
 @admin_required
@@ -1496,70 +1519,62 @@ def admin_fine_create_custom(request):
 
         try:
             with transaction.atomic():
+                # Generate a unique invoice number
+                timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+                invoice_number = f"INV-CUSTOM-{student.student_id}-{timestamp}"
+                
                 # Create the fine with all required fields
-                fine_data = {
-                    'student': student,
-                    'amount': amount,
-                    'description': description,
-                    'is_paid': False,
-                    'days_overdue': 0,
-                    'issue_request': None,  # Explicitly set to None for custom fines
-                    'invoice_number': f"INV-CUSTOM-{student.student_id}-{timezone.now().strftime('%Y%m%d%H%M%S')}",
-                    'payment_method': 'cash'  # Default payment method
-                }
+                fine = Fine(
+                    student=student,
+                    amount=amount,
+                    description=description,
+                    is_paid=False,
+                    days_overdue=0,
+                    issue_request=None,  # Explicitly set to None for custom fines
+                    payment_method='cash',  # Default payment method
+                    invoice_number=invoice_number,
+                    bkash_payment_id='',  # Empty string for required fields
+                    bkash_trx_id=''       # Empty string for required fields
+                )
+                fine.save()  # Save the fine to generate an ID
                 
-                # Log the data being used to create the fine
-                logger.info(f"Creating fine with data: {fine_data}")
-                
+                # Create notification if possible
                 try:
-                    # Try to create the fine
-                    fine = Fine.objects.create(**fine_data)
-                    logger.info(f"Fine created successfully: {fine.id}")
-                    
-                    # Create notification for the student
-                    try:
+                    if hasattr(student, 'user'):
+                        Notification = apps.get_model('library', 'Notification')
                         Notification.objects.create(
                             user=student.user,
                             title='New Fine Issued',
                             message=f'A fine of ৳{amount:.2f} has been issued to your account. Reason: {description}',
                             notification_type='fine'
                         )
-                    except Exception as notif_error:
-                        logger.error(f"Error creating notification: {str(notif_error)}")
-                        # Don't fail the whole operation if notification fails
-                    
-                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                        return JsonResponse({
-                            'success': True,
-                            'message': 'Fine created successfully!'
-                        })
-                    
-                    messages.success(request, 'Fine created successfully!')
-                    return redirect('admin_fines')
-                    
-                except Exception as create_error:
-                    logger.error(f"Error in fine creation: {str(create_error)}", exc_info=True)
-                    raise create_error
+                except Exception as notif_error:
+                    logger.warning(f"Could not create notification: {str(notif_error)}")
+                    # Continue with fine creation even if notification fails
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Fine created successfully!'
+                    })
+                
+                messages.success(request, 'Fine created successfully!')
+                return redirect('admin_fines')
                 
         except Exception as e:
-            error_msg = f"Error creating fine: {str(e)}"
-            logger.error(error_msg, exc_info=True)
-            
+            logger.error(f"Error creating fine: {str(e)}", exc_info=True)
+            error_message = f'An error occurred while creating the fine: {str(e)}'
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'message': f'Error: {str(e)}',
-                    'debug': str(e.__class__.__name__)
+                    'message': error_message
                 }, status=500)
-                
-            messages.error(request, f'An error occurred: {str(e)}')
-            return render(request, 'library/admin_fine_create_custom_modal.html', {
-                'admin': admin,
-                'error': str(e)
-            })
+            messages.error(request, error_message)
+            return render(request, 'library/admin_fine_create_custom_modal.html', {'admin': admin})
 
     # GET request - show the form page
     return render(request, 'library/admin_fine_create_custom_modal.html', {'admin': admin})
+
 
 
 @admin_required

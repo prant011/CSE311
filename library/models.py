@@ -151,11 +151,14 @@ class Student(models.Model):
         self.last_login = timezone.now()
         self.save()
 
+   
     @property
     def total_fines(self):
-        return self.fine_set.filter(is_paid=False).aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
+        if hasattr(self, 'fines'):
+            return self.fines.filter(is_paid=False).aggregate(
+                total=models.Sum('amount')
+            )['total'] or Decimal('0.00')
+        return Decimal('0.00')
 
     @property
     def active_issues_count(self):
@@ -308,3 +311,34 @@ class Fine(models.Model):
         if trx_id:
             self.bkash_trx_id = trx_id
         self.save()
+
+
+class Notification(models.Model):
+    """System notifications for users"""
+    NOTIFICATION_TYPES = [
+        ('fine', 'Fine'),
+        ('issue', 'Book Issue'),
+        ('return', 'Book Return'),
+        ('general', 'General'),
+    ]
+    
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='general')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        db_table = 'library_notification'
+
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"
+
+    def mark_as_read(self):
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save()

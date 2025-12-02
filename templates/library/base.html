@@ -62,16 +62,17 @@
                     </a>
                 </div>
                 <div class="col-md-8">
-                    <ul class="nav-menu justify-content-end">
-                        <li><a href="{% url 'home' %}">HOME</a></li>
+                    <ul class="nav-menu justify-content-end align-items-center">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">HOME</a></li>
                         {% if request.session.is_admin %}
-                            <li><a href="{% url 'admin_books' %}">BOOKS</a></li>
-                            <li><a href="{% url 'admin_students' %}">STUDENTS</a></li>
-                            <li><a href="{% url 'admin_issues' %}">ISSUES</a></li>
-                            <li><a href="{% url 'admin_fines' %}">FINES</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'admin_books' %}">BOOKS</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'admin_students' %}">STUDENTS</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'admin_issues' %}">ISSUES</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'admin_fines' %}">FINES</a></li>
                         {% elif request.session.is_student %}
-                            <li><a href="{% url 'student_issues' %}">MY ISSUES</a></li>
-                            <li><a href="{% url 'student_fines' %}">MY FINES</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'student_dashboard' %}">DASHBOARD</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'student_issues' %}">MY ISSUES</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'student_fines' %}">MY FINES</a></li>
                         {% endif %}
                     </ul>
                 </div>

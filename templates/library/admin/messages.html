@@ -1,0 +1,140 @@
+{% extends 'library/base.html' %}
+{% load tz %}
+
+{% block title %}Admin Messages - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-chat-dots me-2"></i>Admin Messages</h2>
+                <a href="{% url 'admin_send_message' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> New Message
+                </a>
+            </div>
+
+            {% if messages %}
+                <div class="list-group">
+                    {% for message in messages %}
+                        <div class="list-group-item message-card {% if message.message_type == 'student_to_admin' and not message.is_read %}unread{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    {% if message.message_type == 'student_to_admin' %}
+                                        <i class="bi bi-person-fill text-success me-2"></i>
+                                        <span class="message-sender">{{ message.sender }}</span>
+                                        <small class="text-muted">to You</small>
+                                    {% else %}
+                                        <i class="bi bi-person-check-fill text-primary me-2"></i>
+                                        <span class="message-sender">You</span>
+                                        <small class="text-muted">to {{ message.recipient|default:'All Students' }}</small>
+                                    {% endif %}
+                                    {% if message.message_type == 'student_to_admin' and not message.is_read %}
+                                        <span class="badge bg-primary rounded-pill ms-2">New</span>
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">
+                                    {{ message.created_at|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+                            <h5 class="mb-1">{{ message.subject|default:"(No subject)" }}</h5>
+                            <p class="mb-1">{{ message.content|linebreaksbr|truncatewords:30 }}</p>
+                            
+                            {% if message.message_type == 'student_to_admin' %}
+                                <button class="btn btn-sm btn-outline-primary reply-btn mt-2"
+                                        data-student-id="{{ message.sender_id }}"
+                                        data-student-name="{{ message.sender }}">
+                                    <i class="bi bi-reply me-1"></i>Reply
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>No messages found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reply to <span id="replyToName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="replyForm" method="post" action="{% url 'admin_send_message' %}">
+                {% csrf_token %}
+                <input type="hidden" name="message_type" value="admin_to_student">
+                <input type="hidden" name="student_id" id="replyStudentId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="replySubject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="replySubject" name="subject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="replyContent" class="form-label">Message</label>
+                        <textarea class="form-control" id="replyContent" name="content" rows="5" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.message-card {
+    transition: all 0.2s;
+    border-left: 4px solid #dee2e6;
+    margin-bottom: 0.5rem;
+    border-radius: 0.25rem;
+    padding: 1rem;
+}
+.message-card:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+}
+.message-card.unread {
+    border-left-color: #0d6efd;
+    background-color: #f0f7ff;
+}
+.message-sender {
+    font-weight: 600;
+    color: #0d6efd;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle reply button clicks
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const studentId = this.dataset.studentId;
+            const studentName = this.dataset.studentName;
+            
+            document.getElementById('replyStudentId').value = studentId;
+            document.getElementById('replyToName').textContent = studentName;
+            
+            // Set default subject
+            const subject = this.closest('.message-card').querySelector('h5').textContent;
+            if (subject && !subject.startsWith('Re:')) {
+                document.getElementById('replySubject').value = 'Re: ' + subject;
+            }
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('replyModal'));
+            modal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

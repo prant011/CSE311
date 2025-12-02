@@ -65,6 +65,9 @@ urlpatterns = [
     path('admin/students/change-password/<int:pk>/', views.admin_change_password, name='admin_change_password'),
     path('admin/search-student/', views.admin_search_student, name='admin_search_student'),
     
+    # AJAX endpoints
+    path('api/search/student/', views.admin_search_student, name='admin_search_student'),
+    
     # Admin - Fines
     path('admin/fines/', views.admin_fines, name='admin_fines'),
     path('admin/fines/select-issue/', views.admin_fine_select_issue, name='admin_fine_select_issue'),

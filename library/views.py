@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.apps import apps
 import logging
 
+
 # Configure logging
 logger = logging.getLogger(__name__)
 

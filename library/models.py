@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import timedelta
 from decimal import Decimal
+from django.contrib.auth import get_user_model
 
 class Admin(models.Model):
     """Admin users with static credentials"""
@@ -270,8 +271,6 @@ class IssueRequest(models.Model):
                 fine.description = f'Overdue fine for {days_overdue} days'
                 fine.save()
 
-
-# ...existing code...
 
 class Fine(models.Model):
     PAYMENT_METHODS = [

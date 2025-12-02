@@ -9,11 +9,17 @@
   [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](https://www.mysql.com/)
   [![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
   
-  ![Project Screenshots](img1.png)
+  <div style="margin: 20px 0; text-align: center;">
+    <img src="img1.png" alt="Library Management System Homepage" style="max-width: 90%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  </div>
   
-  <div style="display: flex; justify-content: center; gap: 10px; margin: 20px 0;">
-    <img src="img2.png" alt="Dashboard Preview" width="30%">
-    <img src="img3.png" alt="Book Management" width="30%">
+  <div style="display: flex; justify-content: center; gap: 20px; margin: 30px 0; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 45%;">
+      <img src="img2.png" alt="Library Features and Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="flex: 1; min-width: 45%;">
+      <img src="img3.png" alt="Book Management Interface" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    </div>
   </div>
 </div>
 

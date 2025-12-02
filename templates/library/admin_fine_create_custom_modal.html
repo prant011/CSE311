@@ -1,0 +1,262 @@
+{% extends "library/base_admin.html" %}
+
+{% block title %}Create Custom Fine{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_fines' %}">Fines</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Custom Fine</li>
+                </ol>
+            </nav>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Create Custom Fine</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="studentIdInput" placeholder="Enter Student ID">
+                                <button class="btn btn-primary" type="button" id="searchBtn">
+                                    <i class="fas fa-search"></i> Search Student
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="searchResults" class="mb-4" style="display: none;">
+                        <h5>Student Details</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Student ID:</strong> <span id="studentIdDisplay"></span></p>
+                                        <p><strong>Name:</strong> <span id="studentNameDisplay"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Email:</strong> <span id="studentEmailDisplay"></span></p>
+                                        <p><strong>Department:</strong> <span id="studentDeptDisplay"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="fineForm" method="post" action="{% url 'admin_fine_create_custom' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="student_id" id="selectedStudentId" value="">
+                        
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount (৳)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="amount" name="amount" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'admin_fines' %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Back to Fines
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Fine
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage">Fine created successfully!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'admin_fines' %}" class="btn btn-primary">View Fines</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage">An error occurred while creating the fine. Please try again.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchBtn = document.getElementById('searchBtn');
+    const studentIdInput = document.getElementById('studentIdInput');
+    const searchResults = document.getElementById('searchResults');
+    const studentIdDisplay = document.getElementById('studentIdDisplay');
+    const studentNameDisplay = document.getElementById('studentNameDisplay');
+    const studentEmailDisplay = document.getElementById('studentEmailDisplay');
+    const studentDeptDisplay = document.getElementById('studentDeptDisplay');
+    const selectedStudentId = document.getElementById('selectedStudentId');
+    const fineForm = document.getElementById('fineForm');
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Search student by ID
+    searchBtn.addEventListener('click', function() {
+        const studentId = studentIdInput.value.trim();
+        if (!studentId) {
+            alert('Please enter a student ID');
+            return;
+        }
+
+        // Show loading state
+        searchBtn.disabled = true;
+        searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Searching...';
+
+        // Clear previous results
+        searchResults.style.display = 'none';
+        
+        // Add CSRF token to the headers
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const headers = {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken
+        };
+
+        // Fetch student details via AJAX
+        fetch(`/admin/search-student/?q=${encodeURIComponent(studentId)}`, {
+            headers: headers
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Search response:', data); // Debug log
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            if (!data.results || data.results.length === 0) {
+                alert('No student found with the given ID');
+                return;
+            }
+
+            const student = data.results[0]; // Get first matching student
+
+            // Populate student details
+            selectedStudentId.value = student.id;
+            studentIdDisplay.textContent = student.student_id || 'N/A';
+            studentNameDisplay.textContent = student.full_name || 'N/A';
+            studentEmailDisplay.textContent = student.email || 'N/A';
+            studentDeptDisplay.textContent = student.department || 'N/A';
+
+            // Show the results
+            searchResults.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error searching for student:', error);
+            errorMessage.textContent = `Error: ${error.message || 'An error occurred while searching for the student. Please try again.'}`;
+            errorModal.show();
+        })
+        .finally(() => {
+            // Reset button state
+            searchBtn.disabled = false;
+            searchBtn.innerHTML = '<i class="fas fa-search"></i> Search Student';
+        });
+    });
+
+    // Form submission
+    fineForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!selectedStudentId.value) {
+            alert('Please search and select a student first');
+            return;
+        }
+
+        const formData = new FormData(fineForm);
+        const submitBtn = fineForm.querySelector('button[type="submit"]');
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+        
+        // Submit form via AJAX
+        fetch(fineForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                successMessage.textContent = data.message || 'Fine created successfully!';
+                successModal.show();
+                
+                // Reset form
+                fineForm.reset();
+                searchResults.style.display = 'none';
+                selectedStudentId.value = '';
+            } else {
+                // Show error message
+                errorMessage.textContent = data.message || 'An error occurred while creating the fine. Please try again.';
+                errorModal.show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            errorMessage.textContent = 'An error occurred while creating the fine. Please try again.';
+            errorModal.show();
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Create Fine';
+        });
+    });
+});
+</script>
+{% endblock %}

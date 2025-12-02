@@ -1468,7 +1468,7 @@ def admin_fine_create_custom(request):
                     'message': 'All fields are required.'
                 }, status=400)
             messages.error(request, 'All fields are required.')
-            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+            return render(request, 'library/admin_fine_create_custom_modal.html', {'admin': admin})
 
         try:
             student = Student.objects.get(id=student_id)
@@ -1479,7 +1479,7 @@ def admin_fine_create_custom(request):
                     'message': 'Student not found.'
                 }, status=404)
             messages.error(request, 'Student not found.')
-            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+            return render(request, 'library/admin_fine_create_custom_modal.html', {'admin': admin})
 
         try:
             amount = float(amount_raw)
@@ -1492,53 +1492,80 @@ def admin_fine_create_custom(request):
                     'message': 'Please enter a valid amount greater than 0.'
                 }, status=400)
             messages.error(request, 'Invalid amount entered.')
-            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+            return render(request, 'library/admin_fine_create_custom_modal.html', {'admin': admin})
 
         try:
             with transaction.atomic():
-                # Create the fine
-                fine = Fine.objects.create(
-                    student=student,
-                    amount=amount,
-                    description=description,
-                    is_paid=False,
-                    days_overdue=0
-                )
+                # Create the fine with all required fields
+                fine_data = {
+                    'student': student,
+                    'amount': amount,
+                    'description': description,
+                    'is_paid': False,
+                    'days_overdue': 0,
+                    'issue_request': None,  # Explicitly set to None for custom fines
+                    'invoice_number': f"INV-CUSTOM-{student.student_id}-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+                    'payment_method': 'cash'  # Default payment method
+                }
                 
-                # Generate invoice number
-                timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
-                fine.invoice_number = f"INV-{student.student_id}-{timestamp}"
-                fine.save()
+                # Log the data being used to create the fine
+                logger.info(f"Creating fine with data: {fine_data}")
                 
-                # Create notification for the student
-                Notification.objects.create(
-                    user=student.user,
-                    title='New Fine Issued',
-                    message=f'A fine of ৳{amount:.2f} has been issued to your account. Reason: {description}',
-                    notification_type='fine'
-                )
-                
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Fine created successfully!'
-                    })
-                
-                messages.success(request, 'Fine created successfully!')
-                return redirect('admin_fines')
+                try:
+                    # Try to create the fine
+                    fine = Fine.objects.create(**fine_data)
+                    logger.info(f"Fine created successfully: {fine.id}")
+                    
+                    # Create notification for the student
+                    try:
+                        Notification.objects.create(
+                            user=student.user,
+                            title='New Fine Issued',
+                            message=f'A fine of ৳{amount:.2f} has been issued to your account. Reason: {description}',
+                            notification_type='fine'
+                        )
+                    except Exception as notif_error:
+                        logger.error(f"Error creating notification: {str(notif_error)}")
+                        # Don't fail the whole operation if notification fails
+                    
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': True,
+                            'message': 'Fine created successfully!'
+                        })
+                    
+                    messages.success(request, 'Fine created successfully!')
+                    return redirect('admin_fines')
+                    
+                except Exception as create_error:
+                    logger.error(f"Error in fine creation: {str(create_error)}", exc_info=True)
+                    raise create_error
                 
         except Exception as e:
-            logger.error(f"Error creating fine: {str(e)}")
+            error_msg = f"Error creating fine: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'message': 'An error occurred while creating the fine. Please try again.'
+                    'message': f'Error: {str(e)}',
+                    'debug': str(e.__class__.__name__)
                 }, status=500)
-            messages.error(request, 'An error occurred. Please try again.')
-            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+                
+            messages.error(request, f'An error occurred: {str(e)}')
+            return render(request, 'library/admin_fine_create_custom_modal.html', {
+                'admin': admin,
+                'error': str(e)
+            })
 
-    # GET request - show the modal page
-    return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+    # GET request - show the form page
+    return render(request, 'library/admin_fine_create_custom_modal.html', {'admin': admin})
+
+
+@admin_required
+def test_template_view(request):
+    """Test view to check if template is being loaded correctly."""
+    return render(request, 'library/admin_fine_create_custom_modal.html', {'admin': get_current_admin(request)})
 
 
 @admin_required
@@ -1546,29 +1573,44 @@ def admin_fine_create_custom(request):
 def admin_search_student(request):
     """AJAX endpoint: search students (includes registered/active students)."""
     q = request.GET.get('q', '').strip()
+    print(f"Search query: {q}")  # Debug log
+    
     if not q:
+        print("No search query provided")  # Debug log
         return JsonResponse({'results': []})
 
-    # Match by ID, username, name, or email, and include only registered/active students
-    matches = Student.objects.filter(
-        (
+    try:
+        # Broaden the search criteria
+        query = (
             Q(student_id__icontains=q) |
             Q(username__icontains=q) |
             Q(first_name__icontains=q) |
             Q(last_name__icontains=q) |
-            Q(email__icontains=q)
-        ) &
-        (Q(is_active=True) | Q(status__iexact='active'))
-    ).order_by('first_name')[:50]
+            Q(email__icontains=q) |
+            Q(phone__icontains=q)
+        )
+        
+        # Search in both active and inactive students
+        matches = Student.objects.filter(query).order_by('first_name')[:50]
+        
+        print(f"Found {matches.count()} matches")  # Debug log
+        
+        results = []
+        for student in matches:
+            full_name = f"{student.first_name} {student.last_name}".strip()
+            results.append({
+                'id': student.id,
+                'student_id': student.student_id or '',
+                'full_name': full_name,
+                'email': student.email or '',
+                'department': getattr(student, 'department', '') or '',
+                'phone': getattr(student, 'phone', '') or ''
+            })
+            
+            print(f"Added student: {full_name} (ID: {student.id})")  # Debug log
 
-    results = []
-    for s in matches:
-        results.append({
-            'id': s.id,
-            'student_id': s.student_id or '',
-            'full_name': getattr(s, 'full_name', f"{s.first_name} {s.last_name}".strip()),
-            'email': s.email or '',
-            'department': s.department or ''
-        })
-
-    return JsonResponse({'results': results})
+        return JsonResponse({'results': results})
+        
+    except Exception as e:
+        print(f"Error in admin_search_student: {str(e)}")  # Debug log
+        return JsonResponse({'results': [], 'error': str(e)}, status=500)

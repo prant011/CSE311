@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.views.decorators.http import require_http_methods
 
 urlpatterns = [
     # ============= PUBLIC URLs =============
@@ -17,6 +18,9 @@ urlpatterns = [
     # AJAX Validation
     path('validate-student-id/', views.validate_student_id, name='validate_student_id'),
     path('validate-username/', views.validate_username, name='validate_username'),
+    
+    # Test template loading
+    path('admin/test-template/', views.test_template_view, name='test_template'),
     
     # ============= STUDENT URLs =============
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),

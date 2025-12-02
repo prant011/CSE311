@@ -1373,28 +1373,50 @@ def admin_fine_mark_paid(request, pk):
     return render(request, 'library/admin_fine_mark_paid.html', context)
 
 
+@require_http_methods(["POST"])
 @admin_required
 def admin_fine_delete(request, pk):
     """Delete fine"""
     admin = get_current_admin(request)
     
     if not admin:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Session expired. Please login again.'
+            }, status=401)
         messages.error(request, 'Session expired. Please login again.')
         return redirect('admin_login')
     
     fine = get_object_or_404(Fine, pk=pk)
     
-    if request.method == 'POST':
+    try:
         fine_amount = fine.amount
         fine.delete()
-        messages.success(request, f'Fine of ৳{fine_amount} deleted successfully!')
+        
+        response_data = {
+            'success': True,
+            'message': f'Fine of ৳{fine_amount} deleted successfully!'
+        }
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse(response_data)
+            
+        messages.success(request, response_data['message'])
         return redirect('admin_fines')
-    
-    context = {
-        'admin': admin,
-        'fine': fine,
-    }
-    return render(request, 'library/admin_fine_confirm_delete.html', context)
+        
+    except Exception as e:
+        error_msg = f'Error deleting fine: {str(e)}'
+        logger.error(error_msg)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': error_msg
+            }, status=500)
+            
+        messages.error(request, error_msg)
+        return redirect('admin_fines')
 
 
 @admin_required

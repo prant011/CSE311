@@ -1,7 +1,7 @@
 <div align="center">
   <h1>📚 Library Management System</h1>
   <p>
-    A modern, feature-rich library management system with bKash payment integration, built with Django and MySQL.
+    A modern, feature-rich library management system with payment integration, built with Django and MySQL.
   </p>
   
   [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)

@@ -59,9 +59,10 @@ urlpatterns = [
     path('admin/students/delete/<int:pk>/', views.admin_student_delete, name='admin_student_delete'),
     path('admin/students/details/<int:pk>/', views.admin_student_details, name='admin_student_details'),
     path('admin/students/change-password/<int:pk>/', views.admin_change_password, name='admin_change_password'),
+    path('admin/search-student/', views.admin_search_student, name='admin_search_student'),
     
     # Admin - Fines
-   path('admin/fines/', views.admin_fines, name='admin_fines'),
+    path('admin/fines/', views.admin_fines, name='admin_fines'),
     path('admin/fines/select-issue/', views.admin_fine_select_issue, name='admin_fine_select_issue'),
     path('admin/fines/create-custom/', views.admin_fine_create_custom, name='admin_fine_create_custom'),
     path('admin/fines/create/<int:issue_id>/', views.admin_fine_create, name='admin_fine_create'),

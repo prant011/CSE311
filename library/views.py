@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from .models import Admin, Student, Book, Author, IssueRequest, Fine
+from django.views.decorators.http import require_GET, require_http_methods
 
 # ============= AUTHENTICATION VIEWS =============
 
@@ -1409,58 +1410,165 @@ def admin_fine_select_issue(request):
     return render(request, 'library/admin_fine_select_issue.html', context)
 
 
+@require_GET
+@admin_required
+def admin_search_student(request):
+    """API endpoint to search for students by ID or name"""
+    query = request.GET.get('q', '').strip()
+    
+    if not query:
+        return JsonResponse({'results': []})
+    
+    # Search by student ID or name
+    students = Student.objects.filter(
+        Q(student_id__icontains=query) |
+        Q(first_name__icontains=query) |
+        Q(last_name__icontains=query) |
+        Q(username__icontains=query)
+    ).values('id', 'student_id', 'first_name', 'last_name', 'email', 'department')
+    
+    # Format the results
+    results = []
+    for student in students:
+        results.append({
+            'id': student['id'],
+            'student_id': student['student_id'],
+            'full_name': f"{student['first_name']} {student['last_name']}",
+            'email': student['email'],
+            'department': student['department']
+        })
+    
+    return JsonResponse({'results': results})
+
+@require_http_methods(["GET", "POST"])
 @admin_required
 def admin_fine_create_custom(request):
-    """Create custom fine for a student"""
+    """Create custom fine for a student using modal popup"""
     admin = get_current_admin(request)
-    
     if not admin:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Session expired. Please login again.'
+            }, status=401)
         messages.error(request, 'Session expired. Please login again.')
         return redirect('admin_login')
-    
+
+    # Handle POST request from modal form
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        amount = request.POST.get('amount')
-        reason = request.POST.get('reason')
-        
-        if not student_id or not amount or not reason:
-            messages.error(request, 'All fields are required')
-            students = Student.objects.all().order_by('first_name')
-            return render(request, 'library/admin_fine_create_custom.html', {
-                'admin': admin,
-                'students': students
-            })
-        
+        student_id = request.POST.get('student_id', '').strip()
+        amount_raw = request.POST.get('amount', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        # Validation
+        if not all([student_id, amount_raw, description]):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'All fields are required.'
+                }, status=400)
+            messages.error(request, 'All fields are required.')
+            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+
         try:
             student = Student.objects.get(id=student_id)
-            amount = float(amount)
-            
-            if amount <= 0:
-                messages.error(request, 'Amount must be greater than 0')
-                students = Student.objects.all().order_by('first_name')
-                return render(request, 'library/admin_fine_create_custom.html', {
-                    'admin': admin,
-                    'students': students
-                })
-            
-            # Create custom fine
-            fine = Fine.objects.create(
-                student=student,
-                amount=amount,
-                description=reason,
-                is_paid=False
-            )
-            
-            messages.success(request, f'Custom fine created for {student.full_name} - ৳{amount}')
-            return redirect('admin_fines')
-            
         except Student.DoesNotExist:
-            messages.error(request, 'Student not found')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Student not found.'
+                }, status=404)
+            messages.error(request, 'Student not found.')
+            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+
+        try:
+            amount = float(amount_raw)
+            if amount <= 0:
+                raise ValueError("Amount must be greater than 0")
         except ValueError:
-            messages.error(request, 'Invalid amount entered')
-    
-    students = Student.objects.all().order_by('first_name')
-    return render(request, 'library/admin_fine_create_custom.html', {
-        'admin': admin,
-        'students': students
-    })
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Please enter a valid amount greater than 0.'
+                }, status=400)
+            messages.error(request, 'Invalid amount entered.')
+            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+
+        try:
+            with transaction.atomic():
+                # Create the fine
+                fine = Fine.objects.create(
+                    student=student,
+                    amount=amount,
+                    description=description,
+                    is_paid=False,
+                    days_overdue=0
+                )
+                
+                # Generate invoice number
+                timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+                fine.invoice_number = f"INV-{student.student_id}-{timestamp}"
+                fine.save()
+                
+                # Create notification for the student
+                Notification.objects.create(
+                    user=student.user,
+                    title='New Fine Issued',
+                    message=f'A fine of ৳{amount:.2f} has been issued to your account. Reason: {description}',
+                    notification_type='fine'
+                )
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Fine created successfully!'
+                    })
+                
+                messages.success(request, 'Fine created successfully!')
+                return redirect('admin_fines')
+                
+        except Exception as e:
+            logger.error(f"Error creating fine: {str(e)}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'An error occurred while creating the fine. Please try again.'
+                }, status=500)
+            messages.error(request, 'An error occurred. Please try again.')
+            return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+
+    # GET request - show the modal page
+    return render(request, 'library/admin_fine_create_custom.html', {'admin': admin})
+
+
+@admin_required
+@require_GET
+def admin_search_student(request):
+    """AJAX endpoint: search students (includes registered/active students)."""
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return JsonResponse({'results': []})
+
+    # Match by ID, username, name, or email, and include only registered/active students
+    matches = Student.objects.filter(
+        (
+            Q(student_id__icontains=q) |
+            Q(username__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(email__icontains=q)
+        ) &
+        (Q(is_active=True) | Q(status__iexact='active'))
+    ).order_by('first_name')[:50]
+
+    results = []
+    for s in matches:
+        results.append({
+            'id': s.id,
+            'student_id': s.student_id or '',
+            'full_name': getattr(s, 'full_name', f"{s.first_name} {s.last_name}".strip()),
+            'email': s.email or '',
+            'department': s.department or ''
+        })
+
+    return JsonResponse({'results': results})

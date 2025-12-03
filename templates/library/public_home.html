@@ -43,9 +43,9 @@
                     
                     <!-- Search Form -->
                     <div class="mb-4">
-                        <form method="GET" action="{% url 'home' %}" class="d-flex gap-2" style="max-width: 500px;">
+                        <form method="GET" action="{% url 'home' %}" class="d-flex gap-2" style="max-width: 550px;">
                             <input type="text" name="q" class="form-control form-control-lg" placeholder="Search books by title, author, ISBN..." value="{{ query|default:'' }}" autocomplete="off" style="flex: 1;">
-                            <button type="submit" class="btn btn-light btn-lg">
+                            <button type="submit" class="btn btn-light btn-lg" style="height: 48px; padding: 0 20px; font-size: 14px;">
                                 <i class="bi bi-search"></i> Search
                             </button>
                         </form>

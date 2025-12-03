@@ -52,20 +52,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'library_project.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME', default='library_management'),
-        'USER': config('DB_USER', default='root'),
-        'PASSWORD': config('DB_PASSWORD', default='1234'),  # Default password if not in .env
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
+# Use SQLite if MySQL environment variables are not set (for development/testing)
+if not os.environ.get('DATABASE_HOST'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('DATABASE_NAME', config('DB_NAME', default='library_management')),
+            'USER': os.environ.get('DATABASE_USERNAME', config('DB_USER', default='root')),
+            'PASSWORD': os.environ.get('DATABASE_PASSWORD', config('DB_PASSWORD', default='1234')),
+            'HOST': os.environ.get('DATABASE_HOST', config('DB_HOST', default='localhost')),
+            'PORT': os.environ.get('DATABASE_PORT', config('DB_PORT', default='3306')),
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                'charset': 'utf8mb4',
+            }
+        }
+    }
 
 
 AUTH_PASSWORD_VALIDATORS = [

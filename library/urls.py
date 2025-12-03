@@ -24,6 +24,7 @@ urlpatterns = [
     
     # ============= STUDENT URLs =============
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
+    path('student/books/', views.student_books, name='student_books'),
     path('student/issues/', views.student_issues, name='student_issues'),
     path('student/fines/', views.student_fines, name='student_fines'),
     path('student/change-profile-picture/', views.student_change_profile_picture, name='student_change_profile_picture'),

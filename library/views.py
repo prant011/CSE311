@@ -501,6 +501,56 @@ def student_dashboard(request):
 
 
 @student_required
+def student_books(request):
+    """Student view to browse all books"""
+    student = get_current_student(request)
+    
+    if not student:
+        messages.error(request, 'Session expired. Please login again.')
+        return redirect('student_login')
+    
+    query = request.GET.get('q', '')
+    category = request.GET.get('category', '')
+    sort_by = request.GET.get('sort', 'title')
+    
+    books = Book.objects.select_related('author').all()
+    
+    # Search
+    if query:
+        books = books.filter(
+            Q(title__icontains=query) |
+            Q(author__name__icontains=query) |
+            Q(category__icontains=query) |
+            Q(isbn__icontains=query)
+        )
+    
+    # Filter by category
+    if category:
+        books = books.filter(category__icontains=category)
+    
+    # Sort
+    sort_options = {
+        'title': 'title',
+        'author': 'author__name',
+        '-title': '-title',
+        '-author': '-author__name',
+    }
+    books = books.order_by(sort_options.get(sort_by, 'title'))
+    
+    categories = Book.objects.values_list('category', flat=True).distinct()
+    
+    context = {
+        'books': books,
+        'categories': categories,
+        'query': query,
+        'category': category,
+        'sort_by': sort_by,
+        'student': student,
+    }
+    return render(request, 'library/student_books.html', context)
+
+
+@student_required
 def student_change_profile_picture(request):
     """Change student profile picture"""
     student = get_current_student(request)

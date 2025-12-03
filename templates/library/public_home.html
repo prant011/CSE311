@@ -27,7 +27,7 @@
                                     <i class="bi bi-speedometer"></i> Admin Dashboard
                                 </a>
                             {% elif request.session.is_student %}
-                                <a href="{% url 'student_dashboard' %}" class="btn btn-lg dashboard-btn">
+                                <a href="{% url 'student_dashboard' %}" class="button-85">
                                     <i class="bi bi-person"></i> My Dashboard
                                 </a>
                             {% endif %}
@@ -43,8 +43,8 @@
                     
                     <!-- Search Form -->
                     <div class="mb-4">
-                        <form method="GET" action="{% url 'home' %}" class="d-flex gap-2">
-                            <input type="text" name="q" class="form-control form-control-lg" placeholder="Search books by title, author, ISBN..." value="{{ query|default:'' }}" autocomplete="off">
+                        <form method="GET" action="{% url 'home' %}" class="d-flex gap-2" style="max-width: 500px;">
+                            <input type="text" name="q" class="form-control form-control-lg" placeholder="Search books by title, author, ISBN..." value="{{ query|default:'' }}" autocomplete="off" style="flex: 1;">
                             <button type="submit" class="btn btn-light btn-lg">
                                 <i class="bi bi-search"></i> Search
                             </button>
@@ -421,6 +421,106 @@
             margin-bottom: 2rem;
         }
     }
+    
+    /* Glowing Dashboard Button - Override inline styles */
+    .button-85 {
+        padding: 0.6em 2em !important;
+        border: none !important;
+        outline: none !important;
+        color: rgb(255, 255, 255) !important;
+        background: #111 !important;
+        cursor: pointer !important;
+        position: relative !important;
+        z-index: 0 !important;
+        border-radius: 10px !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        touch-action: manipulation !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        font-weight: 500 !important;
+        font-size: 16px !important;
+        margin: 0 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+    
+    .button-85:hover {
+        transform: translateY(-2px) scale(1.05) !important;
+        box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .button-85:before {
+        content: "" !important;
+        background: linear-gradient(
+            45deg,
+            #ff0000,
+            #ff7300,
+            #fffb00,
+            #48ff00,
+            #00ffd5,
+            #002bff,
+            #7a00ff,
+            #ff00c8,
+            #ff0000
+        ) !important;
+        position: absolute !important;
+        top: -3px !important;
+        left: -3px !important;
+        background-size: 400% !important;
+        z-index: -1 !important;
+        filter: blur(8px) !important;
+        -webkit-filter: blur(8px) !important;
+        width: calc(100% + 6px) !important;
+        height: calc(100% + 6px) !important;
+        animation: glowing-button-85 15s linear infinite !important;
+        transition: opacity 0.3s ease-in-out !important;
+        border-radius: 10px !important;
+    }
+
+    @keyframes glowing-button-85 {
+        0% {
+            background-position: 0 0 !important;
+        }
+        50% {
+            background-position: 400% 0 !important;
+        }
+        100% {
+            background-position: 0 0 !important;
+        }
+    }
+
+    .button-85:after {
+        z-index: -1 !important;
+        content: "" !important;
+        position: absolute !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: #222 !important;
+        left: 0 !important;
+        top: 0 !important;
+        border-radius: 10px !important;
+    }
+    
+    /* Ensure proper spacing for dashboard button container */
+    .d-flex.gap-3 .button-85 {
+        margin: 0 !important;
+        align-self: center !important;
+    }
+    
+    /* Contain glow effect within top bar */
+    .top-bar {
+        overflow: hidden !important;
+        position: relative !important;
+    }
+    
+    .top-bar .button-85 {
+        position: relative !important;
+        z-index: 1 !important;
+    }
 </style>
 
     <!-- CTA Section -->
@@ -436,7 +536,7 @@
                         <i class="bi bi-speedometer"></i> Go to Admin Dashboard
                     </a>
                 {% elif request.session.is_student %}
-                    <a href="{% url 'student_dashboard' %}" class="btn btn-lg dashboard-btn">
+                    <a href="{% url 'student_dashboard' %}" class="button-85">
                         <i class="bi bi-person"></i> Go to My Dashboard
                     </a>
                 {% endif %}

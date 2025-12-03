@@ -395,6 +395,7 @@ def home(request):
     query = request.GET.get('q', '')
     category = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'title')
+    show_all = request.GET.get('all', '') == 'true'
     
     books = Book.objects.select_related('author').all()
     
@@ -423,8 +424,8 @@ def home(request):
     # Convert to list for template rendering
     books_list = list(books)
     
-    # Limit to first 12 books for homepage only if no search/filter
-    if not query and not category:
+    # Limit to first 12 books for homepage only if no search/filter and not showing all
+    if not query and not category and not show_all:
         books_list = books_list[:12]
     
     categories = Book.objects.values_list('category', flat=True).distinct()
@@ -444,6 +445,7 @@ def home(request):
         'categories': categories,
         'selected_category': category,
         'sort_by': sort_by,
+        'show_all': show_all,
         'student': student,
         'is_admin': request.session.get('is_admin', False),
         'is_student': request.session.get('is_student', False),

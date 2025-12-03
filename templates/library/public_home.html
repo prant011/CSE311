@@ -304,14 +304,14 @@
                 </div>
                 {% endfor %}
             </div>
-            {% if not query and books|length >= 12 %}
+            {% if not query and not category and not show_all and books|length >= 12 %}
             <div class="text-center mt-4">
                 {% if request.session.is_student %}
                     <a href="{% url 'student_books' %}" class="button-56">View All Books</a>
                 {% elif request.session.is_admin %}
                     <a href="{% url 'admin_books' %}" class="button-56">View All Books</a>
                 {% else %}
-                    <a href="{% url 'home' %}?q=" class="button-56">View All Books</a>
+                    <a href="{% url 'home' %}?all=true" class="button-56">View All Books</a>
                 {% endif %}
             </div>
             {% endif %}

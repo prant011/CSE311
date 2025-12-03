@@ -19,19 +19,22 @@
   [![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
   
   <div style="display: flex; justify-content: center; gap: 20px; margin: 30px 0; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+    <div style="flex: 1; min-width: 15%; max-width: 15%;">
       <img src="nt1.png" alt="NT1 - Lead Developer & System Architecture" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
-    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+    <div style="flex: 1; min-width: 15%; max-width: 15%;">
       <img src="nt2.png" alt="NT2 - Frontend Design & User Experience" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
-    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+    <div style="flex: 1; min-width: 15%; max-width: 15%;">
+      <img src="nt6.png" alt="NT6 - UI/UX Designer & Graphics" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="flex: 1; min-width: 15%; max-width: 15%;">
       <img src="nt3.png" alt="NT3 - Database Management & Backend Development" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
-    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+    <div style="flex: 1; min-width: 15%; max-width: 15%;">
       <img src="nt4.png" alt="NT4 - Testing & Quality Assurance" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
-    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+    <div style="flex: 1; min-width: 15%; max-width: 15%;">
       <img src="nt5.png" alt="NT5 - Project Manager & Documentation" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
   </div>

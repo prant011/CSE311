@@ -178,6 +178,15 @@
 - **Fine**
   - id, issue (FK), amount, status, payment_date, bKash_trxID, created_at
 
+## 🎯 Special Features
+
+### Motivational Quotes Section
+- **Location**: Featured on the public home page
+- **Auto-refresh**: Quotes automatically change every 2 minutes
+- **Inspiring Content**: Displays motivational quotes about reading, learning, and knowledge
+- **Visual Design**: Beautiful gradient background with elegant typography
+- **User Experience**: Provides inspiration and breaks the monotony of library management tasks
+
 ## 👨‍💻 Developer
 
 **Farhin Ahmed Pranto**  

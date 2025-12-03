@@ -65,6 +65,26 @@
         </div>
     </section>
 
+    <!-- Motivational Quotes Section -->
+    <section class="quotes-section py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="container py-4">
+            <div class="text-center">
+                <div class="quote-container">
+                    <i class="bi bi-quote quote-icon"></i>
+                    <div id="quote-text" class="quote-text">
+                        Loading quote...
+                    </div>
+                    <div id="quote-author" class="quote-author">
+                        - Loading author...
+                    </div>
+                    <div class="quote-loading">
+                        <i class="bi bi-arrow-clockwise"></i> Refreshing quotes...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section class="features-section py-5" style="background-color: #ffffff;">
         <div class="container py-5">
@@ -633,6 +653,245 @@
             max-width: calc(25% - 0.4rem);
         }
     }
+    
+    /* Quotes Section Styles */
+    .quotes-section {
+        color: white;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%);
+    }
+    
+    .quotes-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "images/bgg.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        filter: blur(2px);
+        -webkit-filter: blur(2px);
+        transform: scale(1.1);
+        z-index: 0;
+    }
+    
+        
+    .quote-container {
+        position: relative;
+        z-index: 2;
+        background: rgba(0,0,0,0.1);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255,255,255,0.1);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .quote-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 20px;
+        display: block;
+    }
+    
+    .quote-text {
+        font-size: 1.5rem;
+        line-height: 1.6;
+        margin-bottom: 15px;
+        font-style: italic;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .quote-author {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        font-weight: 600;
+        min-height: 30px;
+    }
+    
+    .quote-loading {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        margin-top: 10px;
+        display: none;
+    }
+    
+    .quote-loading.show {
+        display: block;
+        animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 768px) {
+        .quote-text {
+            font-size: 1.2rem;
+        }
+        .quote-author {
+            font-size: 1rem;
+        }
+    }
 </style>
+
+<!-- Motivational Quotes JavaScript -->
+<script>
+// Motivational quotes API functionality
+class MotivationalQuotes {
+    constructor() {
+        this.quotes = [];
+        this.currentIndex = 0;
+        this.loadingElement = document.querySelector('.quote-loading');
+        this.quoteTextElement = document.getElementById('quote-text');
+        this.quoteAuthorElement = document.getElementById('quote-author');
+        
+        this.init();
+    }
+    
+    async init() {
+        await this.fetchQuotes();
+        this.displayQuote();
+        this.startRotation();
+    }
+    
+    async fetchQuotes() {
+        try {
+            // Try multiple quote APIs in order
+            const apis = [
+                // Quotable API (free, no API key needed)
+                'https://api.quotable.io/quotes/random?limit=10',
+                // Stoic quotes API
+                'https://stoic-quotes.com/api/quotes',
+                // Fallback quotes if APIs fail
+                null
+            ];
+            
+            for (const apiUrl of apis) {
+                try {
+                    if (apiUrl === null) {
+                        // Use fallback quotes
+                        this.quotes = this.getFallbackQuotes();
+                        break;
+                    }
+                    
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) continue;
+                    
+                    const data = await response.json();
+                    
+                    if (apiUrl.includes('quotable.io')) {
+                        this.quotes = data.map(quote => ({
+                            text: quote.content,
+                            author: quote.author
+                        }));
+                    } else if (apiUrl.includes('stoic-quotes')) {
+                        this.quotes = data.map(quote => ({
+                            text: quote.text,
+                            author: quote.author
+                        }));
+                    }
+                    
+                    if (this.quotes.length > 0) break;
+                } catch (error) {
+                    console.warn('API failed, trying next...', error);
+                    continue;
+                }
+            }
+            
+            if (this.quotes.length === 0) {
+                this.quotes = this.getFallbackQuotes();
+            }
+            
+        } catch (error) {
+            console.error('Error fetching quotes:', error);
+            this.quotes = this.getFallbackQuotes();
+        }
+    }
+    
+    getFallbackQuotes() {
+        return [
+            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { text: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs" },
+            { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+            { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
+            { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+            { text: "Your limitation—it's only your imagination.", author: "Unknown" },
+            { text: "Great things never come from comfort zones.", author: "Unknown" },
+            { text: "Dream it. Wish it. Do it.", author: "Unknown" },
+            { text: "Success doesn't just find you. You have to go out and get it.", author: "Unknown" },
+            { text: "The harder you work for something, the greater you'll feel when you achieve it.", author: "Unknown" },
+            { text: "Don't stop when you're tired. Stop when you're done.", author: "Unknown" },
+            { text: "Wake up with determination. Go to bed with satisfaction.", author: "Unknown" },
+            { text: "Do something today that your future self will thank you for.", author: "Sean Patrick Flanery" },
+            { text: "Little things make big days.", author: "Unknown" },
+            { text: "It's going to be hard, but hard does not mean impossible.", author: "Unknown" },
+            { text: "Don't wait for opportunity. Create it.", author: "Unknown" },
+            { text: "Sometimes we're tested not to show our weaknesses, but to discover our strengths.", author: "Unknown" },
+            { text: "The key to success is to focus on goals, not obstacles.", author: "Unknown" },
+            { text: "Dream bigger. Do bigger.", author: "Unknown" },
+            { text: "A room without books is like a body without a soul.", author: "Marcus Tullius Cicero" }
+        ];
+    }
+    
+    displayQuote() {
+        if (this.quotes.length === 0) return;
+        
+        const quote = this.quotes[this.currentIndex];
+        
+        // Fade out
+        this.quoteTextElement.style.opacity = '0';
+        this.quoteAuthorElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            this.quoteTextElement.textContent = `"${quote.text}"`;
+            this.quoteAuthorElement.textContent = `— ${quote.author}`;
+            
+            // Fade in
+            this.quoteTextElement.style.opacity = '1';
+            this.quoteAuthorElement.style.opacity = '1';
+        }, 300);
+    }
+    
+    nextQuote() {
+        this.currentIndex = (this.currentIndex + 1) % this.quotes.length;
+        this.displayQuote();
+    }
+    
+    startRotation() {
+        // Change quote every 2 minutes (120000 milliseconds)
+        setInterval(() => {
+            this.showLoading();
+            setTimeout(() => {
+                this.nextQuote();
+                this.hideLoading();
+            }, 1000);
+        }, 120000);
+    }
+    
+    showLoading() {
+        this.loadingElement.classList.add('show');
+    }
+    
+    hideLoading() {
+        this.loadingElement.classList.remove('show');
+    }
+}
+
+// Initialize quotes when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    new MotivationalQuotes();
+});
+</script>
 
 {% endblock %}

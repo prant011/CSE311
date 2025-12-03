@@ -54,11 +54,11 @@ WSGI_APPLICATION = 'library_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'HOST': os.environ.get('DATABASE_HOST', config('DB_HOST', default='localhost')),
-        'PORT': os.environ.get('DATABASE_PORT', config('DB_PORT', default='3306')),
-        'NAME': os.environ.get('DATABASE_NAME', config('DB_NAME', default='library_management')),
-        'USER': os.environ.get('DATABASE_USERNAME', config('DB_USER', default='root')),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD', config('DB_PASSWORD', default='1234')),
+        'HOST': os.environ.get('DATABASE_HOST') or config('DB_HOST'),
+        'PORT': os.environ.get('DATABASE_PORT') or config('DB_PORT', default='3306'),
+        'NAME': os.environ.get('DATABASE_NAME') or config('DB_NAME', default='library_management'),
+        'USER': os.environ.get('DATABASE_USERNAME') or config('DB_USER', default='root'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD') or config('DB_PASSWORD'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',

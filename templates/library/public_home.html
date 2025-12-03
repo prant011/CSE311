@@ -32,10 +32,10 @@
                                 </a>
                             {% endif %}
                         {% else %}
-                            <a href="{% url 'login_choice' %}" class="btn btn-primary btn-lg">
+                            <a href="{% url 'login_choice' %}" class="button-56 button-56-primary">
                                 <i class="bi bi-box-arrow-in-right"></i> Login
                             </a>
-                            <a href="{% url 'student_signup' %}" class="btn btn-outline-primary btn-lg">
+                            <a href="{% url 'student_signup' %}" class="button-56 button-56-success">
                                 <i class="bi bi-person-plus"></i> Sign Up
                             </a>
                         {% endif %}
@@ -304,11 +304,11 @@
             {% if not query and books|length >= 12 %}
             <div class="text-center mt-4">
                 {% if request.session.is_student %}
-                    <a href="{% url 'student_books' %}" class="btn btn-outline-primary">View All Books</a>
+                    <a href="{% url 'student_books' %}" class="button-56">View All Books</a>
                 {% elif request.session.is_admin %}
-                    <a href="{% url 'admin_books' %}" class="btn btn-outline-primary">View All Books</a>
+                    <a href="{% url 'admin_books' %}" class="button-56">View All Books</a>
                 {% else %}
-                    <a href="{% url 'home' %}?q=" class="btn btn-outline-primary">View All Books</a>
+                    <a href="{% url 'home' %}?q=" class="button-56">View All Books</a>
                 {% endif %}
             </div>
             {% endif %}
@@ -441,10 +441,10 @@
                     </a>
                 {% endif %}
             {% else %}
-                <a href="{% url 'student_signup' %}" class="btn btn-primary btn-lg me-3">
+                <a href="{% url 'student_signup' %}" class="button-56 button-56-success me-3">
                     <i class="bi bi-person-plus"></i> Sign Up Now
                 </a>
-                <a href="{% url 'login_choice' %}" class="btn btn-outline-primary btn-lg">
+                <a href="{% url 'login_choice' %}" class="button-56 button-56-primary">
                     <i class="bi bi-box-arrow-in-right"></i> Login
                 </a>
             {% endif %}
@@ -744,6 +744,87 @@
         .quote-author {
             font-size: 1rem;
         }
+    }
+    
+    /* Custom Button Style */
+    .button-56 {
+        align-items: center;
+        background-color: #fee6e3;
+        border: 2px solid #111;
+        border-radius: 8px;
+        box-sizing: border-box;
+        color: #111;
+        cursor: pointer;
+        display: flex;
+        font-family: Inter,sans-serif;
+        font-size: 16px;
+        height: 48px;
+        justify-content: center;
+        line-height: 24px;
+        max-width: 100%;
+        padding: 0 25px;
+        position: relative;
+        text-align: center;
+        text-decoration: none;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .button-56:after {
+        background-color: #111;
+        border-radius: 8px;
+        content: "";
+        display: block;
+        height: 48px;
+        left: 0;
+        width: 100%;
+        position: absolute;
+        top: -2px;
+        transform: translate(8px, 8px);
+        transition: transform .2s ease-out;
+        z-index: -1;
+    }
+
+    .button-56:hover:after {
+        transform: translate(0, 0);
+    }
+
+    .button-56:active {
+        background-color: #ffdeda;
+        outline: 0;
+    }
+
+    .button-56:hover {
+        outline: 0;
+    }
+
+    @media (min-width: 768px) {
+        .button-56 {
+            padding: 0 40px;
+        }
+    }
+    
+    /* Green variant for signup button */
+    .button-56-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .button-56-success:active {
+        background-color: #c3e6cb;
+    }
+    
+    /* Blue variant for login button */
+    .button-56-primary {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+    
+    .button-56-primary:active {
+        background-color: #b8d4f1;
     }
 </style>
 

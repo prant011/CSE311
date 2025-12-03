@@ -9,16 +9,30 @@
   [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](https://www.mysql.com/)
   [![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
   
-  <div style="margin: 20px 0; text-align: center;">
-    <img src="img1.png" alt="Library Management System Homepage" style="max-width: 90%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-  </div>
+  ## 🛠️ Tools to build the project
+  
+  [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+  [![HTML](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+  [![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+  [![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+  [![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
   
   <div style="display: flex; justify-content: center; gap: 20px; margin: 30px 0; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 45%;">
-      <img src="img2.png" alt="Library Features and Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+      <img src="nt1.png" alt="NT1 - Lead Developer & System Architecture" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
-    <div style="flex: 1; min-width: 45%;">
-      <img src="img3.png" alt="Book Management Interface" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+      <img src="nt2.png" alt="NT2 - Frontend Design & User Experience" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+      <img src="nt3.png" alt="NT3 - Database Management & Backend Development" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+      <img src="nt4.png" alt="NT4 - Testing & Quality Assurance" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="flex: 1; min-width: 18%; max-width: 18%;">
+      <img src="nt5.png" alt="NT5 - Project Manager & Documentation" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
   </div>
 </div>
@@ -181,5 +195,5 @@ For support, please contact [farhinahmed71@gmail.com](mailto:farhinahmed71@gmail
 ---
 
 <div align="center">
-  Made with ❤️ for academic purposes
+  Made with 🤖 for academic purposes
 </div>

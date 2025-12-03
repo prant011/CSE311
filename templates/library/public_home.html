@@ -305,6 +305,8 @@
             <div class="text-center mt-4">
                 {% if request.session.is_student %}
                     <a href="{% url 'student_books' %}" class="btn btn-outline-primary">View All Books</a>
+                {% elif request.session.is_admin %}
+                    <a href="{% url 'admin_books' %}" class="btn btn-outline-primary">View All Books</a>
                 {% else %}
                     <a href="{% url 'home' %}?q=" class="btn btn-outline-primary">View All Books</a>
                 {% endif %}

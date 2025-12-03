@@ -4,6 +4,21 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize database if needed (SQLite only)
+if not os.environ.get('DATABASE_HOST'):
+    import subprocess
+    import sys
+    try:
+        # Try to import Book model to check if tables exist
+        import django
+        django.setup()
+        from library.models import Book
+        Book.objects.count()
+    except:
+        # Database or tables don't exist, run initialization
+        print("Initializing SQLite database...")
+        subprocess.run([sys.executable, str(BASE_DIR / 'init_database.py')])
+
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this')
 DEBUG = config('DEBUG', default=True, cast=bool)
 #ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=lambda v: [s.strip() for s in v.split(',')])

@@ -20,7 +20,7 @@
   
   <div style="display: flex; justify-content: center; gap: 20px; margin: 30px 0; flex-wrap: wrap;">
     <div style="flex: 1; min-width: 15%; max-width: 15%;">
-      <img src="nt1.png" alt="NT1 - Lead Developer & System Architecture" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+      <img src="nt11.png" alt="NT1 - Lead Developer & System Architecture" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     </div>
     <div style="flex: 1; min-width: 15%; max-width: 15%;">
       <img src="nt2.png" alt="NT2 - Frontend Design & User Experience" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">

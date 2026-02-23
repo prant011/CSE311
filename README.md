@@ -65,7 +65,7 @@
 ### Prerequisites
 - Python 3.8 or higher
 - MySQL Server 8.0+
-- bKash Merchant Account (for payment processing)
+
 
 ### Installation
 
@@ -137,16 +137,6 @@
 |  | `/admin/fines/` | Manage fine records |
 
 ## ⚙️ Configuration
-
-### bKash Payment Integration
-1. Register at [bKash Developer Portal](https://developer.bka.sh/)
-2. Create a new application
-3. Obtain your credentials:
-   - App Key
-   - App Secret
-   - Username
-   - Password
-4. Update these in your `.env` file
 
 ### Database Configuration
 - **Type**: MySQL

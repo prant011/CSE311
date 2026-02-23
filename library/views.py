@@ -740,8 +740,9 @@ def admin_dashboard(request):
         total=models.Sum('amount')
     )['total'] or 0
     
-    recent_requests = IssueRequest.objects.filter(status='requested').order_by('-request_date')[:5]
-    recent_issues = IssueRequest.objects.filter(status='issued').order_by('-issue_date')[:5]
+    # Get recent counts instead of full lists
+    recent_requests_count = IssueRequest.objects.filter(status='requested').count()
+    recent_issues_count = IssueRequest.objects.filter(status='issued').count()
     
     context = {
         'admin': admin,
@@ -751,8 +752,8 @@ def admin_dashboard(request):
         'pending_requests': pending_requests,
         'overdue_issues': overdue_issues,
         'unpaid_fines': unpaid_fines,
-        'recent_requests': recent_requests,
-        'recent_issues': recent_issues,
+        'recent_requests_count': recent_requests_count,
+        'recent_issues_count': recent_issues_count,
     }
     return render(request, 'library/admin_dashboard.html', context)
 
@@ -889,6 +890,11 @@ def return_book_admin(request, request_id):
         days_overdue = (date.today() - issue_request.expected_return_date).days
         fine_amount = Decimal(days_overdue) * Decimal('5')  # 5 tk per day
         
+        # Generate unique invoice number
+        from django.utils import timezone
+        timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+        invoice_number = f"INV-RETURN-{issue_request.id}-{timestamp}"
+        
         # Create or update fine
         fine, created = Fine.objects.get_or_create(
             issue_request=issue_request,
@@ -897,6 +903,7 @@ def return_book_admin(request, request_id):
                 'amount': fine_amount,
                 'days_overdue': days_overdue,
                 'description': f'Overdue fine: {days_overdue} days × 5 tk = {fine_amount} tk',
+                'invoice_number': invoice_number,
             }
         )
         

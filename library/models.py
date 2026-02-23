@@ -244,6 +244,7 @@ class IssueRequest(models.Model):
         """Automatically generate fine for overdue books"""
         from django.conf import settings
         from decimal import Decimal
+        import uuid
         
         if self.status != 'overdue' or not self.expected_return_date:
             return
@@ -253,6 +254,10 @@ class IssueRequest(models.Model):
             days_overdue = (today - self.expected_return_date).days
             fine_amount = Decimal(days_overdue) * Decimal('5')  # 5 tk per day
             
+            # Generate unique invoice number
+            timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+            invoice_number = f"INV-AUTO-{self.id}-{timestamp}"
+            
             # Create or update fine
             fine, created = Fine.objects.get_or_create(
                 issue_request=self,
@@ -261,6 +266,7 @@ class IssueRequest(models.Model):
                     'amount': fine_amount,
                     'days_overdue': days_overdue,
                     'description': f'Overdue fine for {days_overdue} days',
+                    'invoice_number': invoice_number,
                 }
             )
             

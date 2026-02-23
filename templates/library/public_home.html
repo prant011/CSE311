@@ -26,7 +26,7 @@
                     <div class="d-flex gap-3 flex-wrap mb-4">
                         {% if request.session.is_admin or request.session.is_student %}
                             {% if request.session.is_admin %}
-                                <a href="{% url 'admin_dashboard' %}" class="btn btn-lg dashboard-btn">
+                                <a href="{% url 'admin_dashboard' %}" class="button-85">
                                     <i class="bi bi-speedometer"></i> Admin Dashboard
                                 </a>
                             {% elif request.session.is_student %}
@@ -535,7 +535,7 @@
             </p>
             {% if request.session.is_admin or request.session.is_student %}
                 {% if request.session.is_admin %}
-                    <a href="{% url 'admin_dashboard' %}" class="btn btn-lg dashboard-btn">
+                    <a href="{% url 'admin_dashboard' %}" class="button-85">
                         <i class="bi bi-speedometer"></i> Go to Admin Dashboard
                     </a>
                 {% elif request.session.is_student %}

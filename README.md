@@ -138,16 +138,6 @@
 
 ## ⚙️ Configuration
 
-### bKash Payment Integration
-1. Register at [bKash Developer Portal](https://developer.bka.sh/)
-2. Create a new application
-3. Obtain your credentials:
-   - App Key
-   - App Secret
-   - Username
-   - Password
-4. Update these in your `.env` file
-
 ### Database Configuration
 - **Type**: MySQL
 - **Name**: library_management

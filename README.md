@@ -65,7 +65,7 @@
 ### Prerequisites
 - Python 3.8 or higher
 - MySQL Server 8.0+
-- bKash Merchant Account (for payment processing)
+
 
 ### Installation
 
